@@ -20,8 +20,30 @@ dev = [
     "pytest-asyncio>=1.3.0",
 ]
 
+[project.optional-dependencies]
+lint = [
+    "ruff>=0.4.6",
+    "mypy>=1.19.0",
+    "codespell>=2.4.1",
+]
+
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402", "F401"]
+
+[tool.mypy]
+ignore_missing_imports = true
+explicit_package_bases = true
+exclude = [".venv"]
+
+[tool.codespell]
+skip = "uv.lock,.venv,./frontend"
+
+[tool.pytest.ini_options]
+pythonpath = "."
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [build-system]
 requires = ["hatchling"]
