@@ -88,12 +88,13 @@ class A11yFeedback(BaseModel):
 # Tools — Codebase Scanning Functions
 # ═══════════════════════════════════════════════════════════════
 
-def search_codebase(pattern: str, file_glob: str = "*") -> str:
+def search_codebase(pattern: str, file_glob: str = "*", root_dir: str = ".") -> str:
     """Search codebase for accessibility-related patterns.
 
     Args:
         pattern: Regex pattern to search for in file contents.
         file_glob: File glob filter (e.g. "*.swift", "*.kt", "*.tsx").
+        root_dir: Absolute path to the project root to scan. Defaults to CWD.
 
     Returns:
         JSON string with matching files, line numbers, and content.
@@ -102,7 +103,8 @@ def search_codebase(pattern: str, file_glob: str = "*") -> str:
     try:
         result = subprocess.run(
             ["grep", "-rn", "--include", file_glob, "-E", pattern, "."],
-            capture_output=True, text=True, timeout=30
+            capture_output=True, text=True, timeout=30,
+            cwd=root_dir,
         )
         matches = []
         for line in result.stdout.strip().split("\n")[:50]:  # Cap at 50
@@ -143,18 +145,19 @@ def read_file_content(file_path: str, start_line: int = 1, end_line: int = 50) -
         return f"Error reading {file_path}: {e}"
 
 
-def list_files(glob_pattern: str) -> str:
+def list_files(glob_pattern: str, root_dir: str = ".") -> str:
     """List files matching a glob pattern.
 
     Args:
         glob_pattern: Glob pattern (e.g. "**/*.swift", "**/*.tsx")
+        root_dir: Absolute path to the project root to glob from. Defaults to CWD.
 
     Returns:
         JSON list of matching file paths.
     """
     from pathlib import Path
     try:
-        files = [str(p) for p in Path(".").glob(glob_pattern) if p.is_file()]
+        files = [str(p) for p in Path(root_dir).glob(glob_pattern) if p.is_file()]
         return json.dumps({"files": files[:100], "count": len(files)})
     except Exception as e:
         return json.dumps({"error": str(e), "files": [], "count": 0})
@@ -321,6 +324,8 @@ CURRENT AUDIT REQUEST:
 EXISTING KNOWN FINDINGS:
 {{{{known_findings?}}}}
 
+PROJECT ROOT DIRECTORY: {{{{target_dir?}}}} (use as root_dir in all tool calls; defaults to "." if not set)
+
 **YOUR OUTPUT MUST BE a structured audit plan with:**
 
 1. **Platform Detection**: ios / android / web / cross-platform
@@ -331,6 +336,7 @@ EXISTING KNOWN FINDINGS:
 
 **RULES:**
 - Be specific about file patterns (e.g. "**/*.swift", "**/*.tsx")
+- ALWAYS pass root_dir from "target_dir" session state to list_files and search_codebase
 - Map file types to WCAG criteria automatically:
   - Images → 1.1.1 (Non-text Content)
   - Forms/inputs → 3.3.1, 3.3.2, 1.3.1
@@ -392,14 +398,16 @@ a11y_scanner = LlmAgent(
     instruction=f"""You are a meticulous accessibility auditor. Execute the
 audit checklist from 'audit_checklist' state key with absolute thoroughness.
 
+PROJECT ROOT: {{{{target_dir?}}}} — pass this as root_dir in ALL list_files and search_codebase calls.
+
 **EXECUTION PHASES:**
 
 **Phase 1: File Discovery**
-- Use `list_files` to enumerate files matching the glob patterns
+- Use `list_files(glob_pattern, root_dir=target_dir)` to enumerate files matching the glob patterns
 - Count total files to scan
 
 **Phase 2: Pattern Scanning**
-- Use `search_codebase` to find accessibility-related patterns
+- Use `search_codebase(pattern, file_glob, root_dir=target_dir)` to find accessibility-related patterns
 - Scan for MISSING patterns (e.g., images without alt, buttons without labels)
 - Scan for INCORRECT patterns (e.g., tabIndex > 0, aria-label="")
 
@@ -421,6 +429,7 @@ For each violation found, classify:
 - Be SPECIFIC — file:line for every finding
 - Be ACTIONABLE — every finding needs a fix suggestion
 - Score starts at 100, subtract per finding severity
+- ALWAYS pass root_dir when calling list_files and search_codebase
 
 Output a structured audit result as JSON with:
 total_violations, score, block_pr, violations[], wcag_criteria_checked, files_scanned
@@ -485,14 +494,17 @@ targeted_scanner = LlmAgent(
 targeted refinement pass. You have been activated because the previous
 audit was graded as 'fail' by the evaluator.
 
+PROJECT ROOT: {target_dir?} — pass this as root_dir in ALL list_files and search_codebase calls.
+
 1. Review 'audit_evaluation' state key to understand the feedback and gaps.
 2. For EACH gap listed:
-   - Use `search_codebase` with specific patterns
+   - Use `search_codebase(pattern, file_glob, root_dir=target_dir)` with specific patterns
    - Use `read_file_content` to inspect suspicious files
    - Check the WCAG criteria that were missed
 3. MERGE new findings with existing findings in 'audit_scan_result'.
 4. Your output MUST be the complete, improved audit result with all violations.
 5. Recalculate the score after adding new findings.
+6. ALWAYS pass root_dir when calling list_files and search_codebase.
 """,
     tools=[codebase_search_tool, file_reader_tool, file_lister_tool],
     output_key="audit_scan_result",
@@ -602,6 +614,13 @@ interactive_audit_planner = LlmAgent(
     ),
     instruction=f"""You are an accessibility audit planning assistant.
 Your primary function is to convert ANY a11y request into a structured audit plan.
+
+**TARGET DIRECTORY EXTRACTION (check this first):**
+If the user's message starts with "[TARGET_DIR: <path>]", extract <path> as the
+project root directory. Store it in session state key "target_dir". Strip the
+"[TARGET_DIR: ...]" prefix before treating the rest as the audit request.
+All tool calls that accept root_dir MUST pass root_dir=<path>.
+If no [TARGET_DIR: ...] prefix is present, use root_dir="." (current directory).
 
 **CRITICAL RULES:**
 1. Never audit code directly. Your job is to PLAN, then DELEGATE.

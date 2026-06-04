@@ -1,5 +1,5 @@
 [project]
-name = "epost-a11y-agent"
+name = "app"
 version = "0.1.0"
 description = "Multi-platform WCAG 2.1 AA accessibility auditor — audit, evaluate, and fix across iOS, Android, and Web using iterative refinement"
 authors = [
@@ -12,6 +12,8 @@ requires-python = ">=3.10,<3.13"
 dependencies = [
     "google-adk>=1.8.0",
     "pydantic>=2.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
 ]
 
 [dependency-groups]
