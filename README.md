@@ -43,8 +43,9 @@ interactive_audit_planner (LlmAgent) — HITL: plan → refine → approve
 
 ## Quick Start
 
+### Backend (Python ADK)
+
 ```bash
-# Install
 cd epost-a11y-agent
 pip install -e .
 
@@ -52,33 +53,49 @@ pip install -e .
 cp .env.example .env
 # Edit .env with your GOOGLE_API_KEY
 
-# Run
-adk web          # Web UI
-adk api_server   # API server
-adk run app      # CLI
+# Run API server
+adk api_server --port 8000
 ```
+
+### Frontend (React + Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev    # → http://localhost:5173
+```
+
+Frontend proxies `/api` → `localhost:8000` (ADK API server).
+
+## Frontend Components
+
+| Component | Description |
+|---|---|
+| `WelcomeScreen` | Landing page with audit scope input + example prompts |
+| `ChatMessagesView` | Chat interface with markdown rendering |
+| `InputForm` | Textarea with Enter-to-send, Stop button |
+| `ActivityTimeline` | 6-agent pipeline with active/completed/pending states |
+| `AuditDashboard` | Score card (0-100), severity breakdown bar chart |
+| `FindingsList` | Filterable findings (severity, platform, WCAG) with fix suggestions |
+| `WCAGMatrix` | Grid of WCAG 2.1 AA criteria color-coded by issue count |
+| `SeverityBadge` | Color-coded severity pills |
 
 ## Usage
 
 ```
-# Audit all Swift files in a project
+# Audit iOS app
 > Audit the iOS app for WCAG 2.1 AA compliance
-→ Scope analyzer creates plan (VoiceOver, UIKit, SwiftUI checks)
-→ User approves
-→ Pipeline: detect iOS → scan *.swift → evaluate → refine → report
 
 # Fix specific violation
 > Fix violation a11y-003: missing accessibilityLabel on login button
-→ Targeted fix with code suggestion
 
 # Review compliance
 > Review web accessibility for the checkout flow
-→ Guidance mode: ARIA patterns, keyboard nav, focus management examples
 ```
 
 ## Configuration
 
-See `app/config.py` for all settings:
+See `app/config.py`:
 
 | Setting | Default | Description |
 |---|---|---|
@@ -89,16 +106,6 @@ See `app/config.py` for all settings:
 | `block_on_critical` | True | Block PR on critical violations |
 | `block_on_regression` | True | Block PR on regressions |
 | `block_on_serious_count` | 5 | Block PR if >= 5 serious |
-
-## Output
-
-The agent produces a structured audit report with:
-- **Score** (0-100, starts at 100, subtract per finding)
-- **PR Blocking** decision (critical/regression/serious thresholds)
-- **Violations** by severity (critical → minor)
-- **WCAG Coverage Matrix** (which AA criteria checked)
-- **Fix Suggestions** with platform-specific code patterns
-- **Regression Analysis** (resolved findings that reappeared)
 
 ## License
 
