@@ -53,8 +53,12 @@ pip install -e .
 cp .env.example app/.env
 # Edit app/.env with your GOOGLE_API_KEY from https://aistudio.google.com/app/apikey
 
-# Run API server
-adk api_server --port 8000
+# Run both servers (validator on :8001, ADK API on :8000)
+./run.sh
+
+# Note: ADK is started as `adk api_server app` — points directly to the app/
+# directory so only "app" is exposed as the agent name.
+
 ```
 
 ### Frontend (React + Vite)
@@ -82,15 +86,22 @@ Frontend proxies `/api` → `localhost:8000` (ADK API server).
 
 ## Usage
 
+1. Run `./run.sh` — starts validator sidecar (`:8001`) and ADK API server (`:8000`)
+2. Open `http://localhost:3000`
+3. Enter the **local project path** (e.g. `/Users/you/MyApp`) and click **Validate**
+4. Enter an audit scope and click **Start Audit**
+
 ```
-# Audit iOS app
-> Audit the iOS app for WCAG 2.1 AA compliance
+# Audit a local iOS app
+Path: /Users/you/MyiOSApp
+Scope: Audit for WCAG 2.1 AA — focus on VoiceOver and Dynamic Type
 
-# Fix specific violation
+# Audit a local web project
+Path: /Users/you/my-react-app
+Scope: Full WCAG 2.1 AA audit covering forms, images, and keyboard navigation
+
+# Fix a specific violation (in follow-up message)
 > Fix violation a11y-003: missing accessibilityLabel on login button
-
-# Review compliance
-> Review web accessibility for the checkout flow
 ```
 
 ## Configuration
