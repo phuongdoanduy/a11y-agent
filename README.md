@@ -49,9 +49,9 @@ interactive_audit_planner (LlmAgent) — HITL: plan → refine → approve
 cd epost-a11y-agent
 pip install -e .
 
-# Configure
-cp .env.example .env
-# Edit .env with your GOOGLE_API_KEY
+# Configure (.env must be in app/ directory, not root)
+cp .env.example app/.env
+# Edit app/.env with your GOOGLE_API_KEY from https://aistudio.google.com/app/apikey
 
 # Run API server
 adk api_server --port 8000
@@ -62,7 +62,7 @@ adk api_server --port 8000
 ```bash
 cd frontend
 npm install
-npm run dev    # → http://localhost:5173
+npm run dev    # → http://localhost:3000
 ```
 
 Frontend proxies `/api` → `localhost:8000` (ADK API server).
@@ -106,6 +106,15 @@ See `app/config.py`:
 | `block_on_critical` | True | Block PR on critical violations |
 | `block_on_regression` | True | Block PR on regressions |
 | `block_on_serious_count` | 5 | Block PR if >= 5 serious |
+
+## Documentation
+
+- **[Project Overview & PDR](./docs/project-overview-pdr.md)** — Product vision, features, and requirements
+- **[System Architecture](./docs/system-architecture.md)** — Agent graph, state flow, ADK patterns
+- **[Code Standards](./docs/code-standards.md)** — Python and TypeScript conventions
+- **[Codebase Summary](./docs/codebase-summary.md)** — File structure and module reference
+- **[Deployment Guide](./docs/deployment-guide.md)** — Setup, configuration, production checklist
+- **[Project Roadmap](./docs/project-roadmap.md)** — Phases and timeline
 
 ## License
 

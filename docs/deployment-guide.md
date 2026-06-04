@@ -68,13 +68,14 @@
 3. **Start development server:**
    ```bash
    npm run dev
-   # Should output: "Local:   http://localhost:5173/"
+   # Should output: "Local:   http://localhost:3000"
    ```
 
 4. **Verify Vite proxy configuration:**
    The `vite.config.ts` includes:
    ```typescript
    server: {
+     port: 3000,
      proxy: {
        '/api': 'http://localhost:8000',
      },
@@ -85,7 +86,7 @@
 ### Verification
 
 - Backend running on `http://localhost:8000`
-- Frontend running on `http://localhost:5173` (or port 3000 if 5173 taken)
+- Frontend running on `http://localhost:3000`
 - Try an audit: Type "Audit the web app for WCAG 2.1 AA compliance" in the chat
 
 ---
