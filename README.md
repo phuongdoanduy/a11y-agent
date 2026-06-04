@@ -1,131 +1,100 @@
 # epost-a11y-agent
 
-Multi-platform WCAG 2.1 AA accessibility auditor built on **Google ADK** (Agent Development Kit).
+Multi-platform WCAG 2.1 AA accessibility auditor built on Google ADK. The repo contains a Python agent backend, a React 19 + Vite 6 dashboard, and a local validator sidecar used to confirm a project path before an audit starts.
 
-Architecture inspired by [google/adk-samples/deep-search](https://github.com/google/adk-samples/tree/main/python/agents/deep-search) — adapted from research pipeline to accessibility audit pipeline.
+## What it does
+
+- Audits iOS, Android, and Web codebases for accessibility issues.
+- Uses a human-in-the-loop agent pipeline: plan, detect platform, scan, evaluate, refine, and report.
+- Streams agent output to the frontend over SSE.
+- Validates local project paths before the audit begins.
 
 ## Architecture
 
+```text
+frontend (3000)
+  -> /api      -> ADK FastAPI wrapper on 8000
+  -> /util     -> validator sidecar on 8001
+
+backend
+  app.agent.py        -> ADK agent graph
+  app.fast_api_app.py -> FastAPI wrapper + /feedback
+  app.path_validator.py -> GET /validate
 ```
-interactive_audit_planner (LlmAgent) — HITL: plan → refine → approve
-├── tools: [AgentTool(scope_analyzer)]
-└── sub_agents: [a11y_audit_pipeline] (SequentialAgent)
-    ├── platform_detector          → detect platform, load checklist
-    ├── a11y_scanner               → scan codebase for violations
-    ├── a11y_refinement_loop       (LoopAgent, max 3 iterations)
-    │   ├── a11y_evaluator         → grade pass/fail + gaps
-    │   ├── ComplianceChecker      → break loop if pass (custom BaseAgent)
-    │   └── targeted_scanner       → follow-up scans on gaps
-    └── audit_report_composer      → final WCAG report with findings
-```
-
-### Deep-Search → A11y Mapping
-
-| Deep-Search Agent | A11y Agent | Role |
-|---|---|---|
-| `plan_generator` | `scope_analyzer` | Create audit plan from request |
-| `section_planner` | `platform_detector` | Detect platform, build checklist |
-| `section_researcher` | `a11y_scanner` | Scan codebase for violations |
-| `research_evaluator` | `a11y_evaluator` | Grade audit quality |
-| `EscalationChecker` | `ComplianceChecker` | Break loop on pass |
-| `enhanced_search_executor` | `targeted_scanner` | Follow-up gap scans |
-| `report_composer` | `audit_report_composer` | Final report with findings |
-| `google_search` | `codebase_search` | grep/file-glob tools |
-
-### Key Design Patterns (from deep-search)
-
-1. **Human-in-the-Loop Planning** — User approves audit scope before scanning begins
-2. **Iterative Refinement Loop** — Evaluator grades → ComplianceChecker breaks or continues → targeted scanner fills gaps
-3. **State-Based Communication** — Agents communicate via `output_key` (session state)
-4. **Callbacks for Side Effects** — `collect_findings_callback` deduplicates, `build_report_callback` computes scores
-5. **Structured Output (Pydantic)** — `A11yFeedback` schema forces evaluator to output structured JSON
-6. **Custom BaseAgent** — `ComplianceChecker` yields `Event(escalate=True)` to break loop
 
 ## Quick Start
 
-### Backend (Python ADK)
-
 ```bash
-cd epost-a11y-agent
-pip install -e .
-
-# Configure (.env must be in app/ directory, not root)
-cp .env.example app/.env
-# Edit app/.env with your GOOGLE_API_KEY from https://aistudio.google.com/app/apikey
-
-# Run both servers (validator on :8001, ADK API on :8000)
+# configure the backend environment file under app/
 ./run.sh
-
-# Note: ADK is started as `adk api_server app` — points directly to the app/
-# directory so only "app" is exposed as the agent name.
-
 ```
 
-### Frontend (React + Vite)
+- Validator starts on `http://localhost:8001`
+- ADK API starts on `http://localhost:8000`
+- Frontend starts separately from `frontend/`
+
+### Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev    # → http://localhost:3000
+npm run dev
 ```
 
-Frontend proxies `/api` → `localhost:8000` (ADK API server).
+Vite runs on `http://localhost:3000` and proxies:
 
-## Frontend Components
+- `/api` -> `http://localhost:8000`
+- `/util` -> `http://localhost:8001`
 
-| Component | Description |
-|---|---|
-| `WelcomeScreen` | Landing page with audit scope input + example prompts |
-| `ChatMessagesView` | Chat interface with markdown rendering |
-| `InputForm` | Textarea with Enter-to-send, Stop button |
-| `ActivityTimeline` | 6-agent pipeline with active/completed/pending states |
-| `AuditDashboard` | Score card (0-100), severity breakdown bar chart |
-| `FindingsList` | Filterable findings (severity, platform, WCAG) with fix suggestions |
-| `WCAGMatrix` | Grid of WCAG 2.1 AA criteria color-coded by issue count |
-| `SeverityBadge` | Color-coded severity pills |
+## Runtime Notes
 
-## Usage
-
-1. Run `./run.sh` — starts validator sidecar (`:8001`) and ADK API server (`:8000`)
-2. Open `http://localhost:3000`
-3. Enter the **local project path** (e.g. `/Users/you/MyApp`) and click **Validate**
-4. Enter an audit scope and click **Start Audit**
-
-```
-# Audit a local iOS app
-Path: /Users/you/MyiOSApp
-Scope: Audit for WCAG 2.1 AA — focus on VoiceOver and Dynamic Type
-
-# Audit a local web project
-Path: /Users/you/my-react-app
-Scope: Full WCAG 2.1 AA audit covering forms, images, and keyboard navigation
-
-# Fix a specific violation (in follow-up message)
-> Fix violation a11y-003: missing accessibilityLabel on login button
-```
+- `./run.sh` is the canonical local runtime. It starts `uvicorn app.path_validator:app --port 8001` and `adk api_server app --port 8000`.
+- The validator exposes `GET /validate?path=/abs/path`, caps traversal at 50,000 files, and detects `ios`, `android`, and `web` using file extensions and project markers.
+- The backend wrapper in `app.fast_api_app.py` exposes the ADK app plus `POST /feedback`.
+- Production Docker runs `uvicorn app.fast_api_app:app --host 0.0.0.0 --port 8080`.
 
 ## Configuration
 
-See `app/config.py`:
+The backend reads the environment file under `app/` and auto-selects auth:
 
-| Setting | Default | Description |
-|---|---|---|
-| `critic_model` | gemini-2.5-pro | Model for evaluation |
-| `worker_model` | gemini-2.5-pro | Model for scanning |
-| `max_audit_iterations` | 3 | Max refinement passes |
-| `compliance_threshold` | 85 | Min score to pass |
-| `block_on_critical` | True | Block PR on critical violations |
-| `block_on_regression` | True | Block PR on regressions |
-| `block_on_serious_count` | 5 | Block PR if >= 5 serious |
+- `GOOGLE_API_KEY` present: direct Gemini API mode.
+- Otherwise: `google.auth.default()` with Vertex AI settings.
 
-## Documentation
+Current model defaults in `app/config.py`:
 
-- **[Project Overview & PDR](./docs/project-overview-pdr.md)** — Product vision, features, and requirements
-- **[System Architecture](./docs/system-architecture.md)** — Agent graph, state flow, ADK patterns
-- **[Code Standards](./docs/code-standards.md)** — Python and TypeScript conventions
-- **[Codebase Summary](./docs/codebase-summary.md)** — File structure and module reference
-- **[Deployment Guide](./docs/deployment-guide.md)** — Setup, configuration, production checklist
-- **[Project Roadmap](./docs/project-roadmap.md)** — Phases and timeline
+| Setting | Default |
+| --- | --- |
+| `critic_model` | `gemma-4-31b-it` |
+| `worker_model` | `gemma-4-31b-it` |
+| `max_audit_iterations` | `3` |
+| `compliance_threshold` | `85` |
+
+## Build and Run
+
+```bash
+make install
+make lint
+uv run pytest
+```
+
+Useful commands:
+
+- `make dev` starts backend + frontend, but not the validator sidecar.
+- `make playground` opens the ADK playground on port `8501`.
+- `npm --prefix frontend run build` creates the production frontend bundle.
+
+## Tests
+
+The repository includes integration tests, evaluation datasets, and a placeholder unit test module under `tests/`. Coverage is still thin around core agent logic and frontend behavior.
+
+## Docs
+
+- [Project Overview & PDR](./docs/project-overview-pdr.md)
+- [Codebase Summary](./docs/codebase-summary.md)
+- [System Architecture](./docs/system-architecture.md)
+- [Deployment Guide](./docs/deployment-guide.md)
+- [Code Standards](./docs/code-standards.md)
+- [Project Roadmap](./docs/project-roadmap.md)
 
 ## License
 
