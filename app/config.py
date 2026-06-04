@@ -34,8 +34,8 @@ class A11yConfiguration:
         block_on_serious_count: Block PR if serious violations exceed this.
     """
 
-    critic_model: str = "gemini-2.5-pro"
-    worker_model: str = "gemini-2.5-pro"
+    critic_model: str = "gemma-4-31b-it"
+    worker_model: str = "gemma-4-31b-it"
     max_audit_iterations: int = 3
     compliance_threshold: int = 85
     block_on_critical: bool = True

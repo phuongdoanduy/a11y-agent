@@ -169,3 +169,7 @@ audit-reports/
 scan-results/
 *-audit-*.json
 *-audit-*.html
+
+# ADK local session and artifact storage (runtime-generated, not source)
+.adk/
+**/.adk/

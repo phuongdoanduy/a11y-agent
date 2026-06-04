@@ -649,4 +649,4 @@ Do not perform any scanning yourself. Plan → Refine → Delegate.
 # ═══════════════════════════════════════════════════════════════
 
 root_agent = interactive_audit_planner
-app = App(root_agent=root_agent, name="epost-a11y-agent")
+app = App(root_agent=root_agent, name="app")
