@@ -1,24 +1,171 @@
-# Dependencies
-node_modules/
-__pycache__/
-*.pyc
+# ============================================================================
+# PYTHON & UV ECOSYSTEM
+# ============================================================================
 .venv/
+.venv312/
 venv/
+env/
+ENV/
 
-# Build output
-frontend/dist/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Environment
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ropeproject/
+
+# uv.lock is intentionally NOT ignored — commit it for reproducible builds
+
+
+# ============================================================================
+# FRONTEND (React + TypeScript + Vite)
+# ============================================================================
+node_modules/
+frontend/node_modules/
+
+frontend/dist/
+frontend/build/
+.next/
+out/
+
+.vite/
+.vercel/
+*.tsbuildinfo
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+
+# ============================================================================
+# TESTING & QA
+# ============================================================================
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright/
+.trace
+
+
+# ============================================================================
+# ENVIRONMENT & SECRETS
+# ============================================================================
 .env
 .env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# IDE
+# Google Cloud / Vertex AI — never commit credentials
+application_default_credentials.json
+google-cloud-credentials.json
+*-gcp-key.json
+*-credentials.json
+*-key.json
+credentials.json
+
+*.pem
+*.key
+
+
+# ============================================================================
+# IDE & EDITOR
+# ============================================================================
 .vscode/
+.vscode-server/
+*.code-workspace
+
 .idea/
+.idea_modules/
+*.iml
+*.iws
+*.ipr
+
+*.sublime-project
+*.sublime-workspace
+
 *.swp
 *.swo
+*~
+\#*\#
+.\#*
+*.bak
 
+
+# ============================================================================
 # OS
+# ============================================================================
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+.directory
+
+
+# ============================================================================
+# RUNTIME ARTIFACTS
+# ============================================================================
+*.tmp
+*.temp
+.tmp/
+.uvicorn.sock
+access.log
+error.log
+.starlette_cache/
+
+
+# ============================================================================
+# PROJECT-SPECIFIC
+# ============================================================================
+audit-reports/
+scan-results/
+*-audit-*.json
+*-audit-*.html
