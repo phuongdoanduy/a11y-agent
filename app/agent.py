@@ -272,6 +272,18 @@ def build_report_callback(callback_context: CallbackContext) -> genai_types.Cont
 
 
 # ═══════════════════════════════════════════════════════════════
+# Eval-compatible wrappers (ADK eval requires instruction: str on all agents)
+# ═══════════════════════════════════════════════════════════════
+
+class _EvalSequentialAgent(SequentialAgent):
+    instruction: str = ""
+
+
+class _EvalLoopAgent(LoopAgent):
+    instruction: str = ""
+
+
+# ═══════════════════════════════════════════════════════════════
 # Custom Agent for Loop Control
 # ═══════════════════════════════════════════════════════════════
 
@@ -281,6 +293,8 @@ class ComplianceChecker(BaseAgent):
     Analogous to EscalationChecker in deep-search — breaks the iterative
     refinement loop when the evaluator grades the audit as 'pass'.
     """
+
+    instruction: str = ""
 
     def __init__(self, name: str):
         super().__init__(name=name)
@@ -579,7 +593,7 @@ For each unique fix_template used, provide the platform-specific code pattern.
 # ═══════════════════════════════════════════════════════════════
 
 # The iterative refinement loop (analogous to iterative_refinement_loop)
-a11y_refinement_loop = LoopAgent(
+a11y_refinement_loop = _EvalLoopAgent(
     name="a11y_refinement_loop",
     max_iterations=config.max_audit_iterations,
     sub_agents=[
@@ -590,7 +604,7 @@ a11y_refinement_loop = LoopAgent(
 )
 
 # The main audit pipeline (analogous to research_pipeline)
-a11y_audit_pipeline = SequentialAgent(
+a11y_audit_pipeline = _EvalSequentialAgent(
     name="a11y_audit_pipeline",
     description=(
         "Executes a pre-scoped accessibility audit. Performs iterative "
