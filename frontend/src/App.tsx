@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { ChatMessagesView } from "./components/ChatMessagesView";
 import { InputForm } from "./components/InputForm";
@@ -29,6 +29,7 @@ export default function App() {
   const [agentHistory, setAgentHistory] = useState<AgentId[]>([]);
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [targetDir, setTargetDir] = useState<string>("");
   const abortRef = useRef<AbortController | null>(null);
 
   const ensureSession = useCallback(async () => {
@@ -56,8 +57,14 @@ export default function App() {
   };
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, dir?: string) => {
       if (isStreaming) return;
+
+      // Display the clean scope text; prepend TARGET_DIR only in the wire payload.
+      const resolvedDir = dir ?? targetDir;
+      const payload = resolvedDir
+        ? `[TARGET_DIR: ${resolvedDir}]\n\n${text}`
+        : text;
 
       const userMsg: Message = {
         id: `u_${Date.now()}`,
@@ -86,7 +93,7 @@ export default function App() {
           { id: agentMsgId, role: "agent", content: "", timestamp: new Date() },
         ]);
 
-        for await (const chunk of streamAgentResponse(sid, text, undefined, undefined, controller.signal)) {
+        for await (const chunk of streamAgentResponse(sid, payload, undefined, undefined, controller.signal)) {
           if (chunk.type === "done") break;
 
           if (chunk.type === "text" && chunk.content) {
@@ -141,7 +148,7 @@ export default function App() {
         abortRef.current = null;
       }
     },
-    [isStreaming, ensureSession],
+    [isStreaming, ensureSession, targetDir],
   );
 
   const stopStreaming = () => {
@@ -181,7 +188,12 @@ export default function App() {
 
       {/* Main content */}
       {!hasMessages ? (
-        <WelcomeScreen onSubmit={sendMessage} />
+        <WelcomeScreen
+          onSubmit={(scope, dir) => {
+            setTargetDir(dir);
+            sendMessage(scope, dir);
+          }}
+        />
       ) : (
         <div className="flex flex-1 overflow-hidden">
           {/* Left sidebar – Activity Timeline */}
