@@ -1,0 +1,32 @@
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "audit_plan_web_frontend",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling."}]
+      }
+    },
+    {
+      "eval_case_id": "audit_plan_ios_swift",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "[TARGET_DIR: /tmp/sample-ios-app] Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling."}]
+      }
+    },
+    {
+      "eval_case_id": "audit_plan_android",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "[TARGET_DIR: /tmp/sample-android-app] Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes."}]
+      }
+    },
+    {
+      "eval_case_id": "capabilities_query",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "What platforms and WCAG 2.1 criteria do you support for accessibility audits? How does the audit process work?"}]
+      }
+    }
+  ]
+}

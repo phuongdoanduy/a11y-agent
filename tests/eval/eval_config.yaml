@@ -1,0 +1,33 @@
+metrics_to_run:
+  - MULTI_TURN_TASK_SUCCESS
+  - MULTI_TURN_TOOL_USE_QUALITY
+  - FINAL_RESPONSE_QUALITY
+  - custom_audit_plan_quality
+
+custom_metrics:
+  - name: custom_audit_plan_quality
+    prompt_template: |
+      You are evaluating the quality of an accessibility audit plan produced by
+      a WCAG 2.1 AA audit planning agent.
+
+      Score on a scale of 1–5 whether the response:
+      1. Correctly identified the platform (iOS/Android/Web/cross-platform)
+      2. Defined concrete scope: specific file glob patterns (e.g. **/*.tsx, **/*.swift)
+      3. Listed at least 3 relevant WCAG 2.1 AA success criteria (e.g. 1.1.1, 1.4.3)
+      4. Called the scope_analyzer tool (evidence of tool use in the trace)
+      5. Identified at least 2 platform-specific priority areas (e.g. forms, images,
+         focus management, color contrast, VoiceOver labels)
+
+      User Prompt: {prompt}
+      Agent Final Response: {response}
+      Full Agent Trace: {agent_data}
+
+      Scoring:
+      5 - All 5 criteria fully satisfied with high specificity
+      4 - 4 criteria satisfied; one minor gap
+      3 - 3 criteria satisfied; plan is usable but incomplete
+      2 - 2 criteria satisfied; significant gaps in platform or scope
+      1 - Plan is missing, vague, or incorrect platform detection
+
+      Return only valid JSON:
+      {"score": <integer 1-5>, "explanation": "<concise rationale>"}
