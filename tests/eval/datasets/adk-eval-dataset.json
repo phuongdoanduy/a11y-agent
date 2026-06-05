@@ -1,0 +1,56 @@
+{
+  "eval_set_id": "a11y_agent_basic",
+  "eval_cases": [
+    {
+      "eval_id": "greeting_and_capabilities",
+      "conversation": [
+        {
+          "invocation_id": "inv-001",
+          "user_content": {
+            "parts": [{"text": "What can you help me with? What platforms do you support for accessibility audits?"}],
+            "role": "user"
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "audit_request_ios",
+      "conversation": [
+        {
+          "invocation_id": "inv-002",
+          "user_content": {
+            "parts": [{"text": "I have an iOS Swift app. Can you audit it for WCAG 2.1 AA accessibility compliance? The project is at /tmp/sample-ios-app."}],
+            "role": "user"
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "audit_request_web",
+      "conversation": [
+        {
+          "invocation_id": "inv-003",
+          "user_content": {
+            "parts": [{"text": "Audit this React web application at /tmp/sample-web-app for accessibility issues. Focus on critical and serious WCAG violations."}],
+            "role": "user"
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    }
+  ]
+}

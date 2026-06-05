@@ -1,0 +1,395 @@
+2026-06-04 22:51:27,683 - INFO - service_factory.py:265 - Using in-memory memory service
+2026-06-04 22:51:27,683 - INFO - local_storage.py:84 - Using per-agent session storage rooted at /Users/ddphuong/Projects/epost-workspace/a11y-agent
+2026-06-04 22:51:27,683 - INFO - local_storage.py:110 - Using file artifact service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.adk/artifacts
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/cli/fast_api.py:528: UserWarning: [EXPERIMENTAL] InMemoryCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  credential_service = InMemoryCredentialService()
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/auth/credential_service/in_memory_credential_service.py:33: UserWarning: [EXPERIMENTAL] BaseCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  super().__init__()
+INFO:     Started server process [29099]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18080 (Press CTRL+C to quit)
+INFO:     127.0.0.1:58046 - "GET / HTTP/1.1" 404 Not Found
+2026-06-04 22:51:28,114 - INFO - local_storage.py:60 - Creating local session service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/app/.adk/session.db
+2026-06-04 22:51:28,120 - INFO - api_server.py:826 - New session created: 6f2a31ef-f808-47ea-affd-65a9eb8e254c
+INFO:     127.0.0.1:58048 - "POST /apps/app/users/cli-user/sessions HTTP/1.1" 200 OK
+2026-06-04 22:51:28,128 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.env
+2026-06-04 22:51:28,128 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.env
+INFO:     127.0.0.1:58050 - "POST /run_sse HTTP/1.1" 200 OK
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/tools/function_tool.py:95: UserWarning: [EXPERIMENTAL] feature FeatureName.JSON_SCHEMA_FOR_FUNC_DECL is enabled.
+  build_function_declaration(
+2026-06-04 22:51:28,217 - INFO - google_llm.py:208 - Sending out request, model: gemma-4-31b-it, backend: GoogleLLMVariant.GEMINI_API, stream: False
+2026-06-04 22:51:28,254 - INFO - models.py:8416 - AFC is enabled with max remote calls: 10.
+2026-06-04 22:51:29,310 - ERROR - _node_runner.py:147 - Node execution failed with exception
+Traceback (most recent call last):
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 129, in run
+    await self._execute_node(ctx, node_input)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 248, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 262, in _run_node_loop
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_base_node.py", line 216, in run
+    async for item in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/llm_agent.py", line 547, in _run_impl
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_llm_agent_wrapper.py", line 380, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/base_agent.py", line 279, in run_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/llm_agent.py", line 503, in _run_async_impl
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 825, in run_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 904, in _run_one_step_async
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1295, in _call_llm_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1273, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1356, in _run_and_handle_error
+    async for response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 410, in _run_and_handle_error
+    raise model_error
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 383, in _run_and_handle_error
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/models/gemma_llm.py", line 255, in generate_content_async
+    async for response in super().generate_content_async(llm_request, stream):
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/models/google_llm.py", line 272, in generate_content_async
+    response = await self.api_client.aio.models.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/models.py", line 8422, in generate_content
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/models.py", line 6953, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1651, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1584, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.14_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.14_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1515, in _async_request_once
+    await errors.APIError.raise_for_async_response(response)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/errors.py", line 247, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/errors.py", line 271, in raise_error_async
+    raise ServerError(status_code, response_json, response)
+google.genai.errors.ServerError: 500 INTERNAL. {'error': {'code': 500, 'message': 'Internal error encountered.', 'status': 'INTERNAL'}}
+2026-06-04 22:51:29,339 - ERROR - runners.py:804 - Root node interactive_audit_planner failed.
+Traceback (most recent call last):
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/runners.py", line 800, in _cleanup_root_task
+    await task
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/runners.py", line 568, in _drive_root_node
+    raise ctx.error
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 129, in run
+    await self._execute_node(ctx, node_input)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 248, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 262, in _run_node_loop
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_base_node.py", line 216, in run
+    async for item in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/llm_agent.py", line 547, in _run_impl
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_llm_agent_wrapper.py", line 380, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/base_agent.py", line 279, in run_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/llm_agent.py", line 503, in _run_async_impl
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 825, in run_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 904, in _run_one_step_async
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1295, in _call_llm_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1273, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1356, in _run_and_handle_error
+    async for response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 410, in _run_and_handle_error
+    raise model_error
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 383, in _run_and_handle_error
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/models/gemma_llm.py", line 255, in generate_content_async
+    async for response in super().generate_content_async(llm_request, stream):
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/models/google_llm.py", line 272, in generate_content_async
+    response = await self.api_client.aio.models.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/models.py", line 8422, in generate_content
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/models.py", line 6953, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1651, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1584, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.14_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.14_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1515, in _async_request_once
+    await errors.APIError.raise_for_async_response(response)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/errors.py", line 247, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/errors.py", line 271, in raise_error_async
+    raise ServerError(status_code, response_json, response)
+google.genai.errors.ServerError: 500 INTERNAL. {'error': {'code': 500, 'message': 'Internal error encountered.', 'status': 'INTERNAL'}}
+2026-06-04 22:51:29,347 - ERROR - api_server.py:1508 - Error in event_generator: 500 INTERNAL. {'error': {'code': 500, 'message': 'Internal error encountered.', 'status': 'INTERNAL'}}
+Traceback (most recent call last):
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/cli/api_server.py", line 1480, in event_generator
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/runners.py", line 997, in run_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/runners.py", line 582, in _run_node_async
+    await self._cleanup_root_task(task, self.agent.name)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/runners.py", line 800, in _cleanup_root_task
+    await task
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/runners.py", line 568, in _drive_root_node
+    raise ctx.error
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 129, in run
+    await self._execute_node(ctx, node_input)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 248, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_node_runner.py", line 262, in _run_node_loop
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_base_node.py", line 216, in run
+    async for item in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/llm_agent.py", line 547, in _run_impl
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/workflow/_llm_agent_wrapper.py", line 380, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/base_agent.py", line 279, in run_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/agents/llm_agent.py", line 503, in _run_async_impl
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 825, in run_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 904, in _run_one_step_async
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1295, in _call_llm_async
+    async for event in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1273, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1356, in _run_and_handle_error
+    async for response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 410, in _run_and_handle_error
+    raise model_error
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 383, in _run_and_handle_error
+    async for llm_response in agen:
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/models/gemma_llm.py", line 255, in generate_content_async
+    async for response in super().generate_content_async(llm_request, stream):
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/models/google_llm.py", line 272, in generate_content_async
+    response = await self.api_client.aio.models.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/models.py", line 8422, in generate_content
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/models.py", line 6953, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1651, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1584, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.14_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.14_1/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/tenacity/asyncio/__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/_api_client.py", line 1515, in _async_request_once
+    await errors.APIError.raise_for_async_response(response)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/errors.py", line 247, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/genai/errors.py", line 271, in raise_error_async
+    raise ServerError(status_code, response_json, response)
+google.genai.errors.ServerError: 500 INTERNAL. {'error': {'code': 500, 'message': 'Internal error encountered.', 'status': 'INTERNAL'}}
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2026-06-04 22:51:29,529 - INFO - runners.py:2137 - Closing runner...
+2026-06-04 22:51:29,529 - INFO - runners.py:2150 - Runner closed.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29099]
+2026-06-04 22:51:43,572 - INFO - service_factory.py:265 - Using in-memory memory service
+2026-06-04 22:51:43,572 - INFO - local_storage.py:84 - Using per-agent session storage rooted at /Users/ddphuong/Projects/epost-workspace/a11y-agent
+2026-06-04 22:51:43,572 - INFO - local_storage.py:110 - Using file artifact service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.adk/artifacts
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/cli/fast_api.py:528: UserWarning: [EXPERIMENTAL] InMemoryCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  credential_service = InMemoryCredentialService()
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/auth/credential_service/in_memory_credential_service.py:33: UserWarning: [EXPERIMENTAL] BaseCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  super().__init__()
+INFO:     Started server process [29202]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18081 (Press CTRL+C to quit)
+INFO:     127.0.0.1:58071 - "GET / HTTP/1.1" 404 Not Found
+2026-06-04 22:51:43,859 - INFO - local_storage.py:60 - Creating local session service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/app/.adk/session.db
+2026-06-04 22:51:43,869 - INFO - api_server.py:826 - New session created: b6ade7e7-a961-4b96-bc46-a8885a086c47
+INFO:     127.0.0.1:58073 - "POST /apps/app/users/cli-user/sessions HTTP/1.1" 200 OK
+2026-06-04 22:51:43,891 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.env
+2026-06-04 22:51:43,892 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.env
+INFO:     127.0.0.1:58075 - "POST /run_sse HTTP/1.1" 200 OK
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/tools/function_tool.py:95: UserWarning: [EXPERIMENTAL] feature FeatureName.JSON_SCHEMA_FOR_FUNC_DECL is enabled.
+  build_function_declaration(
+2026-06-04 22:51:44,013 - INFO - google_llm.py:208 - Sending out request, model: gemma-4-31b-it, backend: GoogleLLMVariant.GEMINI_API, stream: False
+2026-06-04 22:51:44,056 - INFO - models.py:8416 - AFC is enabled with max remote calls: 10.
+2026-06-04 22:52:01,474 - INFO - google_llm.py:277 - Response received from the model.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2026-06-04 22:52:01,682 - INFO - runners.py:2137 - Closing runner...
+2026-06-04 22:52:01,683 - INFO - runners.py:2150 - Runner closed.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29202]
+2026-06-04 23:01:28,466 - INFO - service_factory.py:265 - Using in-memory memory service
+2026-06-04 23:01:28,466 - INFO - local_storage.py:84 - Using per-agent session storage rooted at /Users/ddphuong/Projects/epost-workspace/a11y-agent
+2026-06-04 23:01:28,467 - INFO - local_storage.py:110 - Using file artifact service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.adk/artifacts
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/cli/fast_api.py:528: UserWarning: [EXPERIMENTAL] InMemoryCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  credential_service = InMemoryCredentialService()
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/auth/credential_service/in_memory_credential_service.py:33: UserWarning: [EXPERIMENTAL] BaseCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  super().__init__()
+INFO:     Started server process [32951]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18080 (Press CTRL+C to quit)
+INFO:     127.0.0.1:58493 - "GET / HTTP/1.1" 404 Not Found
+2026-06-04 23:01:29,160 - INFO - local_storage.py:60 - Creating local session service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/app/.adk/session.db
+2026-06-04 23:01:29,166 - INFO - api_server.py:826 - New session created: b032505b-ca0c-48ec-88ad-291c4b383831
+INFO:     127.0.0.1:58495 - "POST /apps/app/users/cli-user/sessions HTTP/1.1" 200 OK
+2026-06-04 23:01:29,181 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.env
+2026-06-04 23:01:29,181 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.env
+INFO:     127.0.0.1:58497 - "POST /run_sse HTTP/1.1" 200 OK
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/tools/function_tool.py:95: UserWarning: [EXPERIMENTAL] feature FeatureName.JSON_SCHEMA_FOR_FUNC_DECL is enabled.
+  build_function_declaration(
+2026-06-04 23:01:29,483 - INFO - google_llm.py:208 - Sending out request, model: gemma-4-31b-it, backend: GoogleLLMVariant.GEMINI_API, stream: False
+2026-06-04 23:01:29,644 - INFO - models.py:8416 - AFC is enabled with max remote calls: 10.
+2026-06-04 23:01:43,766 - INFO - google_llm.py:277 - Response received from the model.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2026-06-04 23:01:43,901 - INFO - runners.py:2137 - Closing runner...
+2026-06-04 23:01:43,901 - INFO - runners.py:2150 - Runner closed.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [32951]
+2026-06-04 23:15:11,586 - INFO - service_factory.py:265 - Using in-memory memory service
+2026-06-04 23:15:11,586 - INFO - local_storage.py:84 - Using per-agent session storage rooted at /Users/ddphuong/Projects/epost-workspace/a11y-agent
+2026-06-04 23:15:11,587 - INFO - local_storage.py:110 - Using file artifact service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.adk/artifacts
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/cli/fast_api.py:528: UserWarning: [EXPERIMENTAL] InMemoryCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  credential_service = InMemoryCredentialService()
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/auth/credential_service/in_memory_credential_service.py:33: UserWarning: [EXPERIMENTAL] BaseCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  super().__init__()
+INFO:     Started server process [39899]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18080 (Press CTRL+C to quit)
+INFO:     127.0.0.1:59155 - "GET / HTTP/1.1" 404 Not Found
+2026-06-04 23:15:12,062 - INFO - local_storage.py:60 - Creating local session service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/app/.adk/session.db
+2026-06-04 23:15:12,069 - INFO - api_server.py:826 - New session created: 91dd457e-030a-4040-9575-944645bee325
+INFO:     127.0.0.1:59157 - "POST /apps/app/users/cli-user/sessions HTTP/1.1" 200 OK
+2026-06-04 23:15:12,076 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.env
+2026-06-04 23:15:12,077 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.env
+INFO:     127.0.0.1:59159 - "POST /run_sse HTTP/1.1" 200 OK
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/tools/function_tool.py:95: UserWarning: [EXPERIMENTAL] feature FeatureName.JSON_SCHEMA_FOR_FUNC_DECL is enabled.
+  build_function_declaration(
+2026-06-04 23:15:12,278 - INFO - google_llm.py:208 - Sending out request, model: gemma-4-31b-it, backend: GoogleLLMVariant.GEMINI_API, stream: False
+2026-06-04 23:15:12,516 - INFO - models.py:8416 - AFC is enabled with max remote calls: 10.
+2026-06-04 23:15:23,225 - INFO - google_llm.py:277 - Response received from the model.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2026-06-04 23:15:23,434 - INFO - runners.py:2137 - Closing runner...
+2026-06-04 23:15:23,435 - INFO - runners.py:2150 - Runner closed.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [39899]
+2026-06-05 09:32:38,283 - INFO - service_factory.py:265 - Using in-memory memory service
+2026-06-05 09:32:38,284 - INFO - local_storage.py:84 - Using per-agent session storage rooted at /Users/ddphuong/Projects/epost-workspace/a11y-agent
+2026-06-05 09:32:38,284 - INFO - local_storage.py:110 - Using file artifact service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/.adk/artifacts
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/cli/fast_api.py:528: UserWarning: [EXPERIMENTAL] InMemoryCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  credential_service = InMemoryCredentialService()
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/auth/credential_service/in_memory_credential_service.py:33: UserWarning: [EXPERIMENTAL] BaseCredentialService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  super().__init__()
+INFO:     Started server process [9477]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18080 (Press CTRL+C to quit)
+INFO:     127.0.0.1:52187 - "GET / HTTP/1.1" 404 Not Found
+2026-06-05 09:32:38,821 - INFO - local_storage.py:60 - Creating local session service at /Users/ddphuong/Projects/epost-workspace/a11y-agent/app/.adk/session.db
+2026-06-05 09:32:38,829 - INFO - api_server.py:826 - New session created: bebb8d48-1770-4c36-af91-89ea2d04b9d4
+INFO:     127.0.0.1:52189 - "POST /apps/app/users/cli-user/sessions HTTP/1.1" 200 OK
+2026-06-05 09:32:38,842 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/app/.env
+2026-06-05 09:32:38,842 - INFO - envs.py:83 - Loaded .env file for app at /Users/ddphuong/Projects/epost-workspace/a11y-agent/app/.env
+INFO:     127.0.0.1:52191 - "POST /run_sse HTTP/1.1" 200 OK
+/Users/ddphuong/Projects/epost-workspace/a11y-agent/.venv/lib/python3.11/site-packages/google/adk/tools/function_tool.py:95: UserWarning: [EXPERIMENTAL] feature FeatureName.JSON_SCHEMA_FOR_FUNC_DECL is enabled.
+  build_function_declaration(
+2026-06-05 09:32:39,030 - INFO - google_llm.py:208 - Sending out request, model: gemma-4-31b-it, backend: GoogleLLMVariant.GEMINI_API, stream: False
+2026-06-05 09:32:39,307 - INFO - models.py:8416 - AFC is enabled with max remote calls: 10.
+2026-06-05 09:32:55,139 - INFO - google_llm.py:277 - Response received from the model.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2026-06-05 09:32:55,364 - INFO - runners.py:2137 - Closing runner...
+2026-06-05 09:32:55,364 - INFO - runners.py:2150 - Runner closed.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [9477]

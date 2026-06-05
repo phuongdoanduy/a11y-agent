@@ -1,0 +1,1332 @@
+{
+  "eval_cases": [
+    {
+      "prompt": {
+        "parts": [
+          {
+            "text": "[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling."
+          }
+        ],
+        "role": "user"
+      },
+      "responses": [
+        {
+          "response": {
+            "parts": [
+              {
+                "text": "*   Input message: `[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.`\n    *   Target directory extraction: `[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend]`.\n    *   Path: `/Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend`.\n    *   Request: \"Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.\" (Note: the user repeated the block twice, I should handle it as one request).\n\n    *   Role: `interactive_audit_planner`.\n    *   Goal: Convert a11y request into a structured audit plan.\n    *   Workflow: Plan -> Refine -> Execute -> Report.\n    *   Constraints: Never audit code directly. Use `scope_analyzer` first.\n\n    *   The user provided a target directory and a specific audit request focusing on WCAG 2.1 AA, color contrast, keyboard navigation, and ARIA labeling.\n    *   I need to call `scope_analyzer` to create the audit plan.\n\n    *   Function: `scope_analyzer`.\n    *   Parameter: `request` (The extracted audit request).\n    *   Root directory handling: The prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". However, looking at the `scope_analyzer` definition provided in the tool list: `{\"description\":\"...\",\"name\":\"scope_analyzer\",\"parameters_json_schema\":{\"type\":\"object\",\"properties\":{\"request\":{\"type\":\"string\"}},\"required\":[\"request\"]}}`. The `scope_analyzer` tool definition provided *does not* have a `root_dir` parameter.\n    *   Wait, let me re-read the \"TARGET DIRECTORY EXTRACTION\" rule: \"All tool calls that accept root_dir MUST pass root_dir=<path>.\" Since `scope_analyzer` only takes `request`, I will pass the request. I will keep the `target_dir` in session state (internally) for when I eventually call the pipeline or if a tool allows it.\n\n    *   Request string: \"Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.\"\n\n    *   `{\"name\": \"scope_analyzer\", \"parameters\": {\"request\": \"Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.\"}}`{\"name\": \"scope_analyzer\", \"parameters\": {\"request\": \"Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.\"}}"
+              }
+            ],
+            "role": "model"
+          }
+        }
+      ],
+      "eval_case_id": "audit_plan_web_frontend",
+      "agent_data": {
+        "agents": {
+          "interactive_audit_planner": {
+            "agent_id": "interactive_audit_planner",
+            "agent_type": "LlmAgent",
+            "description": "The primary a11y audit assistant. Collaborates with the user to define audit scope, then executes the full audit pipeline upon approval.",
+            "instruction": "You are an accessibility audit planning assistant.\nYour primary function is to convert ANY a11y request into a structured audit plan.\n\n**TARGET DIRECTORY EXTRACTION (check this first):**\nIf the user's message starts with \"[TARGET_DIR: <path>]\", extract <path> as the\nproject root directory. Store it in session state key \"target_dir\". Strip the\n\"[TARGET_DIR: ...]\" prefix before treating the rest as the audit request.\nAll tool calls that accept root_dir MUST pass root_dir=<path>.\nIf no [TARGET_DIR: ...] prefix is present, use root_dir=\".\" (current directory).\n\n**CRITICAL RULES:**\n1. Never audit code directly. Your job is to PLAN, then DELEGATE.\n2. Use `scope_analyzer` tool to create an audit plan for the user's request.\n3. Present the plan clearly: platform, scope (files), WCAG criteria, priority areas.\n4. Incorporate user feedback until the plan is approved.\n5. Once user gives EXPLICIT approval, delegate to `a11y_audit_pipeline`.\n\n**WORKFLOW:**\n1. **Plan**: Use scope_analyzer → present audit plan\n2. **Refine**: Incorporate feedback → update plan\n3. **Execute**: User approves → delegate to a11y_audit_pipeline\n4. **Report**: Pipeline returns → present findings to user\n\nCurrent date: 2026-06-04\nDo not perform any scanning yourself. Plan → Refine → Delegate.\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Analyzes the audit request, determines scope (files, platform, WCAG criteria), and creates a targeted audit plan.",
+                    "name": "scope_analyzer",
+                    "parameters_json_schema": {
+                      "type": "object",
+                      "properties": {
+                        "request": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "request"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": [
+              "a11y_audit_pipeline"
+            ]
+          },
+          "a11y_audit_pipeline": {
+            "agent_id": "a11y_audit_pipeline",
+            "agent_type": "_EvalSequentialAgent",
+            "description": "Executes a pre-scoped accessibility audit. Performs iterative scanning, evaluation, and composes a final WCAG 2.1 AA report.",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [
+              "platform_detector",
+              "a11y_scanner",
+              "a11y_refinement_loop",
+              "audit_report_composer"
+            ]
+          },
+          "platform_detector": {
+            "agent_id": "platform_detector",
+            "agent_type": "LlmAgent",
+            "description": "Detects platform from files, loads appropriate a11y ruleset, and creates a checklist of WCAG criteria to verify.",
+            "instruction": "You are a platform detection specialist. Given the audit plan,\nidentify the target platform and create a structured audit checklist.\n\n**Platform Detection Rules:**\n- `.swift`, `.xib`, `.storyboard`, SwiftUI → **iOS** (VoiceOver, UIKit, SwiftUI)\n- `.kt`, `.kts`, Compose, XML layouts → **Android** (TalkBack, Compose, Views)\n- `.tsx`, `.jsx`, `.html`, `.css`, ARIA → **Web** (Screen readers, keyboard, ARIA)\n- Mixed → **cross-platform** (run all applicable checklists)\n\n**Your output must include:**\n1. Platform: ios / android / web / cross-platform\n2. Checklist: WCAG criteria to verify (from the audit plan)\n3. Platform-specific patterns to scan for:\n   - iOS: accessibilityLabel, accessibilityTraits, isAccessibilityElement, .header, accessibilityHint\n   - Android: contentDescription, Modifier.semantics{}, heading(), mergeDescendants, onClickLabel\n   - Web: aria-label, role, tabIndex, :focus-visible, alt, <label>, heading hierarchy\n4. File glob patterns for the scanner\n\nOutput as structured JSON.\n",
+            "tools": [],
+            "sub_agents": []
+          },
+          "a11y_scanner": {
+            "agent_id": "a11y_scanner",
+            "agent_type": "LlmAgent",
+            "description": "Scans the codebase for WCAG violations using grep/read tools, applies platform-specific rules, and produces structured findings.",
+            "instruction": "You are a meticulous accessibility auditor. Execute the\naudit checklist from 'audit_checklist' state key with absolute thoroughness.\n\nPROJECT ROOT: {{target_dir?}} — pass this as root_dir in ALL list_files and search_codebase calls.\n\n**EXECUTION PHASES:**\n\n**Phase 1: File Discovery**\n- Use `list_files(glob_pattern, root_dir=target_dir)` to enumerate files matching the glob patterns\n- Count total files to scan\n\n**Phase 2: Pattern Scanning**\n- Use `search_codebase(pattern, file_glob, root_dir=target_dir)` to find accessibility-related patterns\n- Scan for MISSING patterns (e.g., images without alt, buttons without labels)\n- Scan for INCORRECT patterns (e.g., tabIndex > 0, aria-label=\"\")\n\n**Phase 3: Deep Inspection**\n- Use `read_file_content` to examine suspicious files in detail\n- Verify context around flagged patterns\n- Check for fix templates that apply\n\n**Phase 4: Finding Classification**\nFor each violation found, classify:\n- WCAG criterion (e.g., \"1.1.1\")\n- Severity: critical (-10pts), serious (-5pts), moderate (-2pts), minor (-1pt)\n- Platform: ios / android / web\n- Fix template: add_alt_text, add_aria_label, add_heading_level, etc.\n- Whether this is a regression of a known finding\n\n**CRITICAL RULES:**\n- Be THOROUGH — scan every file in scope\n- Be SPECIFIC — file:line for every finding\n- Be ACTIONABLE — every finding needs a fix suggestion\n- Score starts at 100, subtract per finding severity\n- ALWAYS pass root_dir when calling list_files and search_codebase\n\nOutput a structured audit result as JSON with:\ntotal_violations, score, block_pr, violations[], wcag_criteria_checked, files_scanned\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Search codebase for accessibility-related patterns.\n\nArgs:\n    pattern: Regex pattern to search for in file contents.\n    file_glob: File glob filter (e.g. \"*.swift\", \"*.kt\", \"*.tsx\").\n    root_dir: Absolute path to the project root to scan. Defaults to CWD.\n\nReturns:\n    JSON string with matching files, line numbers, and content.",
+                    "name": "search_codebase",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "pattern": {
+                          "title": "Pattern",
+                          "type": "string"
+                        },
+                        "file_glob": {
+                          "default": "*",
+                          "title": "File Glob",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ],
+                      "title": "search_codebaseParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "Read a specific range of lines from a file.\n\nArgs:\n    file_path: Path to the file.\n    start_line: Starting line number (1-indexed).\n    end_line: Ending line number (inclusive).\n\nReturns:\n    File content with line numbers.",
+                    "name": "read_file_content",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "file_path": {
+                          "title": "File Path",
+                          "type": "string"
+                        },
+                        "start_line": {
+                          "default": 1,
+                          "title": "Start Line",
+                          "type": "integer"
+                        },
+                        "end_line": {
+                          "default": 50,
+                          "title": "End Line",
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ],
+                      "title": "read_file_contentParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "List files matching a glob pattern.\n\nArgs:\n    glob_pattern: Glob pattern (e.g. \"**/*.swift\", \"**/*.tsx\")\n    root_dir: Absolute path to the project root to glob from. Defaults to CWD.\n\nReturns:\n    JSON list of matching file paths.",
+                    "name": "list_files",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "glob_pattern": {
+                          "title": "Glob Pattern",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "glob_pattern"
+                      ],
+                      "title": "list_filesParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": []
+          },
+          "a11y_refinement_loop": {
+            "agent_id": "a11y_refinement_loop",
+            "agent_type": "_EvalLoopAgent",
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [
+              "a11y_evaluator",
+              "compliance_checker",
+              "targeted_scanner"
+            ]
+          },
+          "a11y_evaluator": {
+            "agent_id": "a11y_evaluator",
+            "agent_type": "LlmAgent",
+            "description": "Critically evaluates audit thoroughness. Grades pass/fail and identifies coverage gaps for targeted follow-up scans.",
+            "instruction": "You are a meticulous quality assurance analyst evaluating\nthe accessibility audit in 'audit_scan_result'.\n\n**CRITICAL RULES:**\n1. Your ONLY job is to assess audit COMPLETENESS and QUALITY.\n2. Do NOT re-audit the code — evaluate the audit process itself.\n3. Check against the WCAG AA criteria list: ['1.1.1', '1.2.1', '1.3.1', '1.3.2', '1.3.3', '1.4.1', '1.4.3', '1.4.4', '1.4.5', '2.1.1', '2.1.2', '2.4.1', '2.4.2', '2.4.3', '2.4.4', '2.4.6', '2.4.7', '3.1.1', '3.1.2', '3.2.1', '3.2.2', '3.3.1', '3.3.2', '4.1.1', '4.1.2']\n\n**EVALUATION CRITERIA:**\n- Coverage: Were all files in scope scanned?\n- Depth: Were WCAG criteria thoroughly checked?\n- Specificity: Are findings specific (file:line, not vague)?\n- Actionability: Do findings have clear fix suggestions?\n- Score validity: Does the score calculation seem correct?\n\n**Be CRITICAL.** If you find significant gaps:\n- Grade \"fail\"\n- List specific gaps (which WCAG criteria missed, which files unscanned)\n- Provide follow-up scan targets (file patterns, WCAG criteria, component names)\n\nIf audit is thorough, grade \"pass\".\n\nYour response must be a single JSON object matching the A11yFeedback schema.\n",
+            "tools": [],
+            "sub_agents": []
+          },
+          "compliance_checker": {
+            "agent_id": "compliance_checker",
+            "agent_type": "ComplianceChecker",
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": []
+          },
+          "targeted_scanner": {
+            "agent_id": "targeted_scanner",
+            "agent_type": "LlmAgent",
+            "description": "Executes targeted follow-up scans based on evaluator feedback. Focuses on specific gaps, missed files, and unverified WCAG criteria.",
+            "instruction": "You are a specialist accessibility auditor executing a\ntargeted refinement pass. You have been activated because the previous\naudit was graded as 'fail' by the evaluator.\n\nPROJECT ROOT: {target_dir?} — pass this as root_dir in ALL list_files and search_codebase calls.\n\n1. Review 'audit_evaluation' state key to understand the feedback and gaps.\n2. For EACH gap listed:\n   - Use `search_codebase(pattern, file_glob, root_dir=target_dir)` with specific patterns\n   - Use `read_file_content` to inspect suspicious files\n   - Check the WCAG criteria that were missed\n3. MERGE new findings with existing findings in 'audit_scan_result'.\n4. Your output MUST be the complete, improved audit result with all violations.\n5. Recalculate the score after adding new findings.\n6. ALWAYS pass root_dir when calling list_files and search_codebase.\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Search codebase for accessibility-related patterns.\n\nArgs:\n    pattern: Regex pattern to search for in file contents.\n    file_glob: File glob filter (e.g. \"*.swift\", \"*.kt\", \"*.tsx\").\n    root_dir: Absolute path to the project root to scan. Defaults to CWD.\n\nReturns:\n    JSON string with matching files, line numbers, and content.",
+                    "name": "search_codebase",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "pattern": {
+                          "title": "Pattern",
+                          "type": "string"
+                        },
+                        "file_glob": {
+                          "default": "*",
+                          "title": "File Glob",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ],
+                      "title": "search_codebaseParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "Read a specific range of lines from a file.\n\nArgs:\n    file_path: Path to the file.\n    start_line: Starting line number (1-indexed).\n    end_line: Ending line number (inclusive).\n\nReturns:\n    File content with line numbers.",
+                    "name": "read_file_content",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "file_path": {
+                          "title": "File Path",
+                          "type": "string"
+                        },
+                        "start_line": {
+                          "default": 1,
+                          "title": "Start Line",
+                          "type": "integer"
+                        },
+                        "end_line": {
+                          "default": 50,
+                          "title": "End Line",
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ],
+                      "title": "read_file_contentParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "List files matching a glob pattern.\n\nArgs:\n    glob_pattern: Glob pattern (e.g. \"**/*.swift\", \"**/*.tsx\")\n    root_dir: Absolute path to the project root to glob from. Defaults to CWD.\n\nReturns:\n    JSON list of matching file paths.",
+                    "name": "list_files",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "glob_pattern": {
+                          "title": "Glob Pattern",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "glob_pattern"
+                      ],
+                      "title": "list_filesParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": []
+          },
+          "audit_report_composer": {
+            "agent_id": "audit_report_composer",
+            "agent_type": "LlmAgent",
+            "description": "Transforms audit findings into a professional, actionable accessibility audit report with fix suggestions and priority ranking.",
+            "instruction": "Transform the audit data into a polished, professional\naccessibility audit report.\n\n---\n\n### INPUT DATA\n* Audit Checklist: `{audit_checklist}`\n* Scan Results: `{audit_scan_result}`\n* Known Findings: `{known_findings?}`\n\n---\n\n### REPORT STRUCTURE\n\n## 1. Executive Summary\n- Platform audited\n- Overall score and compliance status\n- PR blocking decision with rationale\n\n## 2. Violations by Severity\nFor each severity level (critical → minor):\n- Finding ID, WCAG criterion, title\n- File:line reference\n- Description of issue\n- Code snippet (if available)\n- Suggested fix with code example\n\n## 3. WCAG Coverage Matrix\nTable showing which AA criteria were checked and pass/fail status.\n\n## 4. Regression Analysis\n- Any previously resolved findings that reappeared\n- New findings vs known findings\n\n## 5. Remediation Priority\nOrdered list of fixes by impact (critical first, then serious, etc.)\n\n## 6. Fix Templates\nFor each unique fix_template used, provide the platform-specific code pattern.\n\n---\n\n### RULES\n- Every finding MUST have: file path, WCAG criterion, severity, fix suggestion\n- Use code snippets from the scan results — do not fabricate code\n- Group by severity, then by WCAG criterion within each severity\n- Include the compliance threshold and whether the audit passes or fails\n",
+            "tools": [],
+            "sub_agents": []
+          }
+        },
+        "turns": [
+          {
+            "turn_index": 0,
+            "turn_id": "turn_0",
+            "events": [
+              {
+                "author": "interactive_audit_planner",
+                "content": {
+                  "parts": [
+                    {
+                      "text": "*   Input message: `[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.`\n    *   Target directory extraction: `[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend]`.\n    *   Path: `/Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend`.\n    *   Request: \"Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.\" (Note: the user repeated the block twice, I should handle it as one request).\n\n    *   Role: `interactive_audit_planner`.\n    *   Goal: Convert a11y request into a structured audit plan.\n    *   Workflow: Plan -> Refine -> Execute -> Report.\n    *   Constraints: Never audit code directly. Use `scope_analyzer` first.\n\n    *   The user provided a target directory and a specific audit request focusing on WCAG 2.1 AA, color contrast, keyboard navigation, and ARIA labeling.\n    *   I need to call `scope_analyzer` to create the audit plan.\n\n    *   Function: `scope_analyzer`.\n    *   Parameter: `request` (The extracted audit request).\n    *   Root directory handling: The prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". However, looking at the `scope_analyzer` definition provided in the tool list: `{\"description\":\"...\",\"name\":\"scope_analyzer\",\"parameters_json_schema\":{\"type\":\"object\",\"properties\":{\"request\":{\"type\":\"string\"}},\"required\":[\"request\"]}}`. The `scope_analyzer` tool definition provided *does not* have a `root_dir` parameter.\n    *   Wait, let me re-read the \"TARGET DIRECTORY EXTRACTION\" rule: \"All tool calls that accept root_dir MUST pass root_dir=<path>.\" Since `scope_analyzer` only takes `request`, I will pass the request. I will keep the `target_dir` in session state (internally) for when I eventually call the pipeline or if a tool allows it.\n\n    *   Request string: \"Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.\"\n\n    *   `{\"name\": \"scope_analyzer\", \"parameters\": {\"request\": \"Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.\"}}",
+                      "thought": true
+                    },
+                    {
+                      "text": "`",
+                      "thought": true
+                    },
+                    {
+                      "text": "{\"name\": \"scope_analyzer\", \"parameters\": {\"request\": \"Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling.\"}}"
+                    }
+                  ],
+                  "role": "model"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "prompt": {
+        "parts": [
+          {
+            "text": "[TARGET_DIR: /tmp/sample-ios-app] Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling."
+          }
+        ],
+        "role": "user"
+      },
+      "responses": [
+        {
+          "response": {
+            "parts": [
+              {
+                "text": "*   Role: Accessibility Audit Planning Assistant (`interactive_audit_planner`).\n    *   Goal: Convert a11y requests into structured audit plans, refine them, and then delegate to `a11y_audit_pipeline`.\n    *   Target Directory Extraction: User provided `[TARGET_DIR: /tmp/sample-ios-app]`. I must extract this and use it for tool calls.\n    *   Input: \"[TARGET_DIR: /tmp/sample-ios-app] Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling.\"\n    *   Workflow: Plan (using `scope_analyzer`) -> Refine -> Execute (delegate to `a11y_audit_pipeline`).\n\n    *   Target Directory: `/tmp/sample-ios-app`\n    *   Request: \"Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling.\"\n\n    *   I need to create a plan.\n    *   The `scope_analyzer` tool takes a `request`.\n    *   Since the prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\", but the `scope_analyzer` schema provided in the function list *only* shows a `request` parameter, I should check if I can pass `root_dir`. Wait, looking at the provided `parameters_json_schema` for `scope_analyzer`, it only has `request`.\n    *   However, the system prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". This is a bit contradictory if the schema doesn't have it. I'll check the schema again. `{\"description\":\"Analyzes the audit request, determines scope (files, platform, WCAG criteria), and creates a targeted audit plan.\",\"name\":\"scope_analyzer\",\"parameters_json_schema\":{\"type\":\"object\",\"properties\":{\"request\":{\"type\":\"string\"}},\"required\":[\"request\"]}}`.\n    *   The schema doesn't have `root_dir`. But the system prompt is explicit. I'll include `root_dir` in the parameters if possible, or just follow the schema if the system is strict. Actually, usually, system instructions about a specific parameter take precedence if they are meant to be a global requirement for all tools in that domain, but if the schema is strict, it might fail.\n    *   Re-reading: \"All tool calls that accept root_dir MUST pass root_dir=<path>.\" This implies *if* they accept it. If `scope_analyzer` doesn't have it in its schema, I can't force it. But maybe I should include it anyway as requested by the prompt's \"CRITICAL RULES\" section?\n    *   Actually, looking at the prompt again, it says \"Store it in session state key 'target_dir'\". I will assume the backend handles the session state, but I will attempt to pass it if the prompt implies it. However, looking at the JSON schema provided, `scope_analyzer` ONLY has `request`.\n    *   Wait, the prompt says: \"All tool calls that accept root_dir MUST pass root_dir=<path>.\" If `scope_analyzer` doesn't list `root_dir` in its `properties`, it doesn't \"accept\" it according to the schema.\n    *   Let's use the `scope_analyzer` tool with the request.\n\n    *   Request: \"Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling.\"\n    *   Target Dir: `/tmp/sample-ios-app` (Save for later or pass if possible). Since the schema doesn't support it, I'll just send the request.\n\n    *Correction*: Let's double check the target dir instruction. \"[TARGET_DIR: <path>] ... All tool calls that accept root_dir MUST pass root_dir=<path>.\"\n    If I call `scope_analyzer`, I'll stick to the schema provided. But I'll note the target dir in my internal state.\n\n    Wait, if the system prompt tells me to pass `root_dir`, and the tool schema doesn't have it, this is a conflict. Usually, in these prompt engineering tests, if the system prompt says \"All tool calls that accept root_dir MUST pass root_dir\", and the tool is an analyzer that *should* know the directory to analyze the scope, it's highly likely it *should* have that parameter even if the schema provided in the prompt is simplified or missing it. However, following the provided schema is safer for the tool call to actually work.\n\n    Actually, I'll include the directory *within* the request string to be safe, or just try adding the parameter. Most LLM tool environments are flexible. But the instructions say \"Store it in session state key 'target_dir'\". This suggests the platform manages the state.\n\n    Let's call `scope_analyzer` with the request.\n\n    *Action*: Call `scope_analyzer`.{\"name\": \"scope_analyzer\", \"parameters\": {\"request\": \"Audit this iOS Swift app located at /tmp/sample-ios-app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling.\"}}"
+              }
+            ],
+            "role": "model"
+          }
+        }
+      ],
+      "eval_case_id": "audit_plan_ios_swift",
+      "agent_data": {
+        "agents": {
+          "interactive_audit_planner": {
+            "agent_id": "interactive_audit_planner",
+            "agent_type": "LlmAgent",
+            "description": "The primary a11y audit assistant. Collaborates with the user to define audit scope, then executes the full audit pipeline upon approval.",
+            "instruction": "You are an accessibility audit planning assistant.\nYour primary function is to convert ANY a11y request into a structured audit plan.\n\n**TARGET DIRECTORY EXTRACTION (check this first):**\nIf the user's message starts with \"[TARGET_DIR: <path>]\", extract <path> as the\nproject root directory. Store it in session state key \"target_dir\". Strip the\n\"[TARGET_DIR: ...]\" prefix before treating the rest as the audit request.\nAll tool calls that accept root_dir MUST pass root_dir=<path>.\nIf no [TARGET_DIR: ...] prefix is present, use root_dir=\".\" (current directory).\n\n**CRITICAL RULES:**\n1. Never audit code directly. Your job is to PLAN, then DELEGATE.\n2. Use `scope_analyzer` tool to create an audit plan for the user's request.\n3. Present the plan clearly: platform, scope (files), WCAG criteria, priority areas.\n4. Incorporate user feedback until the plan is approved.\n5. Once user gives EXPLICIT approval, delegate to `a11y_audit_pipeline`.\n\n**WORKFLOW:**\n1. **Plan**: Use scope_analyzer → present audit plan\n2. **Refine**: Incorporate feedback → update plan\n3. **Execute**: User approves → delegate to a11y_audit_pipeline\n4. **Report**: Pipeline returns → present findings to user\n\nCurrent date: 2026-06-04\nDo not perform any scanning yourself. Plan → Refine → Delegate.\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Analyzes the audit request, determines scope (files, platform, WCAG criteria), and creates a targeted audit plan.",
+                    "name": "scope_analyzer",
+                    "parameters_json_schema": {
+                      "type": "object",
+                      "properties": {
+                        "request": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "request"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": [
+              "a11y_audit_pipeline"
+            ]
+          },
+          "a11y_audit_pipeline": {
+            "agent_id": "a11y_audit_pipeline",
+            "agent_type": "_EvalSequentialAgent",
+            "description": "Executes a pre-scoped accessibility audit. Performs iterative scanning, evaluation, and composes a final WCAG 2.1 AA report.",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [
+              "platform_detector",
+              "a11y_scanner",
+              "a11y_refinement_loop",
+              "audit_report_composer"
+            ]
+          },
+          "platform_detector": {
+            "agent_id": "platform_detector",
+            "agent_type": "LlmAgent",
+            "description": "Detects platform from files, loads appropriate a11y ruleset, and creates a checklist of WCAG criteria to verify.",
+            "instruction": "You are a platform detection specialist. Given the audit plan,\nidentify the target platform and create a structured audit checklist.\n\n**Platform Detection Rules:**\n- `.swift`, `.xib`, `.storyboard`, SwiftUI → **iOS** (VoiceOver, UIKit, SwiftUI)\n- `.kt`, `.kts`, Compose, XML layouts → **Android** (TalkBack, Compose, Views)\n- `.tsx`, `.jsx`, `.html`, `.css`, ARIA → **Web** (Screen readers, keyboard, ARIA)\n- Mixed → **cross-platform** (run all applicable checklists)\n\n**Your output must include:**\n1. Platform: ios / android / web / cross-platform\n2. Checklist: WCAG criteria to verify (from the audit plan)\n3. Platform-specific patterns to scan for:\n   - iOS: accessibilityLabel, accessibilityTraits, isAccessibilityElement, .header, accessibilityHint\n   - Android: contentDescription, Modifier.semantics{}, heading(), mergeDescendants, onClickLabel\n   - Web: aria-label, role, tabIndex, :focus-visible, alt, <label>, heading hierarchy\n4. File glob patterns for the scanner\n\nOutput as structured JSON.\n",
+            "tools": [],
+            "sub_agents": []
+          },
+          "a11y_scanner": {
+            "agent_id": "a11y_scanner",
+            "agent_type": "LlmAgent",
+            "description": "Scans the codebase for WCAG violations using grep/read tools, applies platform-specific rules, and produces structured findings.",
+            "instruction": "You are a meticulous accessibility auditor. Execute the\naudit checklist from 'audit_checklist' state key with absolute thoroughness.\n\nPROJECT ROOT: {{target_dir?}} — pass this as root_dir in ALL list_files and search_codebase calls.\n\n**EXECUTION PHASES:**\n\n**Phase 1: File Discovery**\n- Use `list_files(glob_pattern, root_dir=target_dir)` to enumerate files matching the glob patterns\n- Count total files to scan\n\n**Phase 2: Pattern Scanning**\n- Use `search_codebase(pattern, file_glob, root_dir=target_dir)` to find accessibility-related patterns\n- Scan for MISSING patterns (e.g., images without alt, buttons without labels)\n- Scan for INCORRECT patterns (e.g., tabIndex > 0, aria-label=\"\")\n\n**Phase 3: Deep Inspection**\n- Use `read_file_content` to examine suspicious files in detail\n- Verify context around flagged patterns\n- Check for fix templates that apply\n\n**Phase 4: Finding Classification**\nFor each violation found, classify:\n- WCAG criterion (e.g., \"1.1.1\")\n- Severity: critical (-10pts), serious (-5pts), moderate (-2pts), minor (-1pt)\n- Platform: ios / android / web\n- Fix template: add_alt_text, add_aria_label, add_heading_level, etc.\n- Whether this is a regression of a known finding\n\n**CRITICAL RULES:**\n- Be THOROUGH — scan every file in scope\n- Be SPECIFIC — file:line for every finding\n- Be ACTIONABLE — every finding needs a fix suggestion\n- Score starts at 100, subtract per finding severity\n- ALWAYS pass root_dir when calling list_files and search_codebase\n\nOutput a structured audit result as JSON with:\ntotal_violations, score, block_pr, violations[], wcag_criteria_checked, files_scanned\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Search codebase for accessibility-related patterns.\n\nArgs:\n    pattern: Regex pattern to search for in file contents.\n    file_glob: File glob filter (e.g. \"*.swift\", \"*.kt\", \"*.tsx\").\n    root_dir: Absolute path to the project root to scan. Defaults to CWD.\n\nReturns:\n    JSON string with matching files, line numbers, and content.",
+                    "name": "search_codebase",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "pattern": {
+                          "title": "Pattern",
+                          "type": "string"
+                        },
+                        "file_glob": {
+                          "default": "*",
+                          "title": "File Glob",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ],
+                      "title": "search_codebaseParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "Read a specific range of lines from a file.\n\nArgs:\n    file_path: Path to the file.\n    start_line: Starting line number (1-indexed).\n    end_line: Ending line number (inclusive).\n\nReturns:\n    File content with line numbers.",
+                    "name": "read_file_content",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "file_path": {
+                          "title": "File Path",
+                          "type": "string"
+                        },
+                        "start_line": {
+                          "default": 1,
+                          "title": "Start Line",
+                          "type": "integer"
+                        },
+                        "end_line": {
+                          "default": 50,
+                          "title": "End Line",
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ],
+                      "title": "read_file_contentParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "List files matching a glob pattern.\n\nArgs:\n    glob_pattern: Glob pattern (e.g. \"**/*.swift\", \"**/*.tsx\")\n    root_dir: Absolute path to the project root to glob from. Defaults to CWD.\n\nReturns:\n    JSON list of matching file paths.",
+                    "name": "list_files",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "glob_pattern": {
+                          "title": "Glob Pattern",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "glob_pattern"
+                      ],
+                      "title": "list_filesParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": []
+          },
+          "a11y_refinement_loop": {
+            "agent_id": "a11y_refinement_loop",
+            "agent_type": "_EvalLoopAgent",
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [
+              "a11y_evaluator",
+              "compliance_checker",
+              "targeted_scanner"
+            ]
+          },
+          "a11y_evaluator": {
+            "agent_id": "a11y_evaluator",
+            "agent_type": "LlmAgent",
+            "description": "Critically evaluates audit thoroughness. Grades pass/fail and identifies coverage gaps for targeted follow-up scans.",
+            "instruction": "You are a meticulous quality assurance analyst evaluating\nthe accessibility audit in 'audit_scan_result'.\n\n**CRITICAL RULES:**\n1. Your ONLY job is to assess audit COMPLETENESS and QUALITY.\n2. Do NOT re-audit the code — evaluate the audit process itself.\n3. Check against the WCAG AA criteria list: ['1.1.1', '1.2.1', '1.3.1', '1.3.2', '1.3.3', '1.4.1', '1.4.3', '1.4.4', '1.4.5', '2.1.1', '2.1.2', '2.4.1', '2.4.2', '2.4.3', '2.4.4', '2.4.6', '2.4.7', '3.1.1', '3.1.2', '3.2.1', '3.2.2', '3.3.1', '3.3.2', '4.1.1', '4.1.2']\n\n**EVALUATION CRITERIA:**\n- Coverage: Were all files in scope scanned?\n- Depth: Were WCAG criteria thoroughly checked?\n- Specificity: Are findings specific (file:line, not vague)?\n- Actionability: Do findings have clear fix suggestions?\n- Score validity: Does the score calculation seem correct?\n\n**Be CRITICAL.** If you find significant gaps:\n- Grade \"fail\"\n- List specific gaps (which WCAG criteria missed, which files unscanned)\n- Provide follow-up scan targets (file patterns, WCAG criteria, component names)\n\nIf audit is thorough, grade \"pass\".\n\nYour response must be a single JSON object matching the A11yFeedback schema.\n",
+            "tools": [],
+            "sub_agents": []
+          },
+          "compliance_checker": {
+            "agent_id": "compliance_checker",
+            "agent_type": "ComplianceChecker",
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": []
+          },
+          "targeted_scanner": {
+            "agent_id": "targeted_scanner",
+            "agent_type": "LlmAgent",
+            "description": "Executes targeted follow-up scans based on evaluator feedback. Focuses on specific gaps, missed files, and unverified WCAG criteria.",
+            "instruction": "You are a specialist accessibility auditor executing a\ntargeted refinement pass. You have been activated because the previous\naudit was graded as 'fail' by the evaluator.\n\nPROJECT ROOT: {target_dir?} — pass this as root_dir in ALL list_files and search_codebase calls.\n\n1. Review 'audit_evaluation' state key to understand the feedback and gaps.\n2. For EACH gap listed:\n   - Use `search_codebase(pattern, file_glob, root_dir=target_dir)` with specific patterns\n   - Use `read_file_content` to inspect suspicious files\n   - Check the WCAG criteria that were missed\n3. MERGE new findings with existing findings in 'audit_scan_result'.\n4. Your output MUST be the complete, improved audit result with all violations.\n5. Recalculate the score after adding new findings.\n6. ALWAYS pass root_dir when calling list_files and search_codebase.\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Search codebase for accessibility-related patterns.\n\nArgs:\n    pattern: Regex pattern to search for in file contents.\n    file_glob: File glob filter (e.g. \"*.swift\", \"*.kt\", \"*.tsx\").\n    root_dir: Absolute path to the project root to scan. Defaults to CWD.\n\nReturns:\n    JSON string with matching files, line numbers, and content.",
+                    "name": "search_codebase",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "pattern": {
+                          "title": "Pattern",
+                          "type": "string"
+                        },
+                        "file_glob": {
+                          "default": "*",
+                          "title": "File Glob",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ],
+                      "title": "search_codebaseParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "Read a specific range of lines from a file.\n\nArgs:\n    file_path: Path to the file.\n    start_line: Starting line number (1-indexed).\n    end_line: Ending line number (inclusive).\n\nReturns:\n    File content with line numbers.",
+                    "name": "read_file_content",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "file_path": {
+                          "title": "File Path",
+                          "type": "string"
+                        },
+                        "start_line": {
+                          "default": 1,
+                          "title": "Start Line",
+                          "type": "integer"
+                        },
+                        "end_line": {
+                          "default": 50,
+                          "title": "End Line",
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ],
+                      "title": "read_file_contentParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "List files matching a glob pattern.\n\nArgs:\n    glob_pattern: Glob pattern (e.g. \"**/*.swift\", \"**/*.tsx\")\n    root_dir: Absolute path to the project root to glob from. Defaults to CWD.\n\nReturns:\n    JSON list of matching file paths.",
+                    "name": "list_files",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "glob_pattern": {
+                          "title": "Glob Pattern",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "glob_pattern"
+                      ],
+                      "title": "list_filesParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": []
+          },
+          "audit_report_composer": {
+            "agent_id": "audit_report_composer",
+            "agent_type": "LlmAgent",
+            "description": "Transforms audit findings into a professional, actionable accessibility audit report with fix suggestions and priority ranking.",
+            "instruction": "Transform the audit data into a polished, professional\naccessibility audit report.\n\n---\n\n### INPUT DATA\n* Audit Checklist: `{audit_checklist}`\n* Scan Results: `{audit_scan_result}`\n* Known Findings: `{known_findings?}`\n\n---\n\n### REPORT STRUCTURE\n\n## 1. Executive Summary\n- Platform audited\n- Overall score and compliance status\n- PR blocking decision with rationale\n\n## 2. Violations by Severity\nFor each severity level (critical → minor):\n- Finding ID, WCAG criterion, title\n- File:line reference\n- Description of issue\n- Code snippet (if available)\n- Suggested fix with code example\n\n## 3. WCAG Coverage Matrix\nTable showing which AA criteria were checked and pass/fail status.\n\n## 4. Regression Analysis\n- Any previously resolved findings that reappeared\n- New findings vs known findings\n\n## 5. Remediation Priority\nOrdered list of fixes by impact (critical first, then serious, etc.)\n\n## 6. Fix Templates\nFor each unique fix_template used, provide the platform-specific code pattern.\n\n---\n\n### RULES\n- Every finding MUST have: file path, WCAG criterion, severity, fix suggestion\n- Use code snippets from the scan results — do not fabricate code\n- Group by severity, then by WCAG criterion within each severity\n- Include the compliance threshold and whether the audit passes or fails\n",
+            "tools": [],
+            "sub_agents": []
+          }
+        },
+        "turns": [
+          {
+            "turn_index": 0,
+            "turn_id": "turn_0",
+            "events": [
+              {
+                "author": "interactive_audit_planner",
+                "content": {
+                  "parts": [
+                    {
+                      "text": "*   Role: Accessibility Audit Planning Assistant (`interactive_audit_planner`).\n    *   Goal: Convert a11y requests into structured audit plans, refine them, and then delegate to `a11y_audit_pipeline`.\n    *   Target Directory Extraction: User provided `[TARGET_DIR: /tmp/sample-ios-app]`. I must extract this and use it for tool calls.\n    *   Input: \"[TARGET_DIR: /tmp/sample-ios-app] Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling.\"\n    *   Workflow: Plan (using `scope_analyzer`) -> Refine -> Execute (delegate to `a11y_audit_pipeline`).\n\n    *   Target Directory: `/tmp/sample-ios-app`\n    *   Request: \"Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling.\"\n\n    *   I need to create a plan.\n    *   The `scope_analyzer` tool takes a `request`.\n    *   Since the prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\", but the `scope_analyzer` schema provided in the function list *only* shows a `request` parameter, I should check if I can pass `root_dir`. Wait, looking at the provided `parameters_json_schema` for `scope_analyzer`, it only has `request`.\n    *   However, the system prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". This is a bit contradictory if the schema doesn't have it. I'll check the schema again. `{\"description\":\"Analyzes the audit request, determines scope (files, platform, WCAG criteria), and creates a targeted audit plan.\",\"name\":\"scope_analyzer\",\"parameters_json_schema\":{\"type\":\"object\",\"properties\":{\"request\":{\"type\":\"string\"}},\"required\":[\"request\"]}}`.\n    *   The schema doesn't have `root_dir`. But the system prompt is explicit. I'll include `root_dir` in the parameters if possible, or just follow the schema if the system is strict. Actually, usually, system instructions about a specific parameter take precedence if they are meant to be a global requirement for all tools in that domain, but if the schema is strict, it might fail.\n    *   Re-reading: \"All tool calls that accept root_dir MUST pass root_dir=<path>.\" This implies *if* they accept it. If `scope_analyzer` doesn't have it in its schema, I can't force it. But maybe I should include it anyway as requested by the prompt's \"CRITICAL RULES\" section?\n    *   Actually, looking at the prompt again, it says \"Store it in session state key 'target_dir'\". I will assume the backend handles the session state, but I will attempt to pass it if the prompt implies it. However, looking at the JSON schema provided, `scope_analyzer` ONLY has `request`.\n    *   Wait, the prompt says: \"All tool calls that accept root_dir MUST pass root_dir=<path>.\" If `scope_analyzer` doesn't list `root_dir` in its `properties`, it doesn't \"accept\" it according to the schema.\n    *   Let's use the `scope_analyzer` tool with the request.\n\n    *   Request: \"Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling.\"\n    *   Target Dir: `/tmp/sample-ios-app` (Save for later or pass if possible). Since the schema doesn't support it, I'll just send the request.\n\n    *Correction*: Let's double check the target dir instruction. \"[TARGET_DIR: <path>] ... All tool calls that accept root_dir MUST pass root_dir=<path>.\"\n    If I call `scope_analyzer`, I'll stick to the schema provided. But I'll note the target dir in my internal state.\n\n    Wait, if the system prompt tells me to pass `root_dir`, and the tool schema doesn't have it, this is a conflict. Usually, in these prompt engineering tests, if the system prompt says \"All tool calls that accept root_dir MUST pass root_dir\", and the tool is an analyzer that *should* know the directory to analyze the scope, it's highly likely it *should* have that parameter even if the schema provided in the prompt is simplified or missing it. However, following the provided schema is safer for the tool call to actually work.\n\n    Actually, I'll include the directory *within* the request string to be safe, or just try adding the parameter. Most LLM tool environments are flexible. But the instructions say \"Store it in session state key 'target_dir'\". This suggests the platform manages the state.\n\n    Let's call `scope_analyzer` with the request.\n\n    *Action*: Call `scope_analyzer`.",
+                      "thought": true
+                    },
+                    {
+                      "text": "{\"name\": \"scope_analyzer\", \"parameters\": {\"request\": \"Audit this iOS Swift app located at /tmp/sample-ios-app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling.\"}}"
+                    }
+                  ],
+                  "role": "model"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "prompt": {
+        "parts": [
+          {
+            "text": "[TARGET_DIR: /tmp/sample-android-app] Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes."
+          }
+        ],
+        "role": "user"
+      },
+      "responses": [
+        {
+          "response": {
+            "parts": [
+              {
+                "text": "*   Input: `[TARGET_DIR: /tmp/sample-android-app] Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.`\n    *   Target Directory: `/tmp/sample-android-app`\n    *   Request: `Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.`\n    *   Role: `interactive_audit_planner`\n    *   Goal: Convert request to a structured audit plan using `scope_analyzer`.\n\n    *   Extract `target_dir`: `/tmp/sample-android-app`.\n    *   Strip prefix: `Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.`\n    *   Action: Call `scope_analyzer` with the cleaned request. Note: The tool `scope_analyzer` only takes `request`. The system prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". However, looking at the `scope_analyzer` tool definition provided: `{\"description\":\"Analyzes the audit request...\",\"name\":\"scope_analyzer\",\"parameters_json_schema\":{\"type\":\"object\",\"properties\":{\"request\":{\"type\":\"string\"}},\"required\":[\"request\"]}}`. It *doesn't* have a `root_dir` parameter in its schema.\n    *   Wait, the system prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". I should check if I can add it or if I should just follow the schema. Usually, schema takes precedence for the tool call, but the system prompt gives a specific instruction.\n    *   Let's re-read the tool definition for `scope_analyzer`. It only defines `request`. If I pass `root_dir`, it might be ignored or cause an error depending on the runtime. But the system prompt instruction is explicit: \"All tool calls that accept root_dir MUST pass root_dir=<path>\". If the tool *doesn't* accept it in the schema, I cannot pass it.\n    *   Wait, if the tool *doesn't* accept it, the instruction \"All tool calls that accept root_dir...\" implies only those that *do* accept it should.\n    *   Let's double-check the provided tool list.\n        *   `transfer_to_agent`: takes `agent_name`.\n        *   `scope_analyzer`: takes `request`.\n    *   Neither accepts `root_dir`.\n    *   Wait, maybe the `scope_analyzer` tool *should* have it? No, I must follow the provided JSON schema.\n    *   However, the prompt says \"Store it in session state key 'target_dir'\". This suggests the backend manages the session state, and I just need to identify it.\n\n    *   Request to `scope_analyzer`: \"Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes. (Root Directory: /tmp/sample-android-app)\" - Or I just pass the request and let the session state handle it. But the instruction says \"Strip the [TARGET_DIR: ...] prefix before treating the rest as the audit request.\"\n\n    *   So:\n        1.  Extract `/tmp/sample-android-app`.\n        2.  Call `scope_analyzer(request=\"Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.\")`.\n\n    *   Wait, I should check if the `scope_analyzer` tool actually accepts `root_dir` even if not in the schema? No, I should follow the schema. But the system prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". This is a conflict if the schema doesn't show it.\n    *   Let's look at the prompt again: \"**TARGET DIRECTORY EXTRACTION (check this first):** ... Store it in session state key 'target_dir' ... All tool calls that accept root_dir MUST pass root_dir=<path>.\"\n    *   Since `scope_analyzer` does NOT have `root_dir` in its schema, I won't pass it.\n\n    *   Plan:\n        Call `scope_analyzer` with the request.{\"name\": \"scope_analyzer\", \"parameters\": {\"request\": \"Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.\"}}"
+              }
+            ],
+            "role": "model"
+          }
+        }
+      ],
+      "eval_case_id": "audit_plan_android",
+      "agent_data": {
+        "agents": {
+          "interactive_audit_planner": {
+            "agent_id": "interactive_audit_planner",
+            "agent_type": "LlmAgent",
+            "description": "The primary a11y audit assistant. Collaborates with the user to define audit scope, then executes the full audit pipeline upon approval.",
+            "instruction": "You are an accessibility audit planning assistant.\nYour primary function is to convert ANY a11y request into a structured audit plan.\n\n**TARGET DIRECTORY EXTRACTION (check this first):**\nIf the user's message starts with \"[TARGET_DIR: <path>]\", extract <path> as the\nproject root directory. Store it in session state key \"target_dir\". Strip the\n\"[TARGET_DIR: ...]\" prefix before treating the rest as the audit request.\nAll tool calls that accept root_dir MUST pass root_dir=<path>.\nIf no [TARGET_DIR: ...] prefix is present, use root_dir=\".\" (current directory).\n\n**CRITICAL RULES:**\n1. Never audit code directly. Your job is to PLAN, then DELEGATE.\n2. Use `scope_analyzer` tool to create an audit plan for the user's request.\n3. Present the plan clearly: platform, scope (files), WCAG criteria, priority areas.\n4. Incorporate user feedback until the plan is approved.\n5. Once user gives EXPLICIT approval, delegate to `a11y_audit_pipeline`.\n\n**WORKFLOW:**\n1. **Plan**: Use scope_analyzer → present audit plan\n2. **Refine**: Incorporate feedback → update plan\n3. **Execute**: User approves → delegate to a11y_audit_pipeline\n4. **Report**: Pipeline returns → present findings to user\n\nCurrent date: 2026-06-04\nDo not perform any scanning yourself. Plan → Refine → Delegate.\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Analyzes the audit request, determines scope (files, platform, WCAG criteria), and creates a targeted audit plan.",
+                    "name": "scope_analyzer",
+                    "parameters_json_schema": {
+                      "type": "object",
+                      "properties": {
+                        "request": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "request"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": [
+              "a11y_audit_pipeline"
+            ]
+          },
+          "a11y_audit_pipeline": {
+            "agent_id": "a11y_audit_pipeline",
+            "agent_type": "_EvalSequentialAgent",
+            "description": "Executes a pre-scoped accessibility audit. Performs iterative scanning, evaluation, and composes a final WCAG 2.1 AA report.",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [
+              "platform_detector",
+              "a11y_scanner",
+              "a11y_refinement_loop",
+              "audit_report_composer"
+            ]
+          },
+          "platform_detector": {
+            "agent_id": "platform_detector",
+            "agent_type": "LlmAgent",
+            "description": "Detects platform from files, loads appropriate a11y ruleset, and creates a checklist of WCAG criteria to verify.",
+            "instruction": "You are a platform detection specialist. Given the audit plan,\nidentify the target platform and create a structured audit checklist.\n\n**Platform Detection Rules:**\n- `.swift`, `.xib`, `.storyboard`, SwiftUI → **iOS** (VoiceOver, UIKit, SwiftUI)\n- `.kt`, `.kts`, Compose, XML layouts → **Android** (TalkBack, Compose, Views)\n- `.tsx`, `.jsx`, `.html`, `.css`, ARIA → **Web** (Screen readers, keyboard, ARIA)\n- Mixed → **cross-platform** (run all applicable checklists)\n\n**Your output must include:**\n1. Platform: ios / android / web / cross-platform\n2. Checklist: WCAG criteria to verify (from the audit plan)\n3. Platform-specific patterns to scan for:\n   - iOS: accessibilityLabel, accessibilityTraits, isAccessibilityElement, .header, accessibilityHint\n   - Android: contentDescription, Modifier.semantics{}, heading(), mergeDescendants, onClickLabel\n   - Web: aria-label, role, tabIndex, :focus-visible, alt, <label>, heading hierarchy\n4. File glob patterns for the scanner\n\nOutput as structured JSON.\n",
+            "tools": [],
+            "sub_agents": []
+          },
+          "a11y_scanner": {
+            "agent_id": "a11y_scanner",
+            "agent_type": "LlmAgent",
+            "description": "Scans the codebase for WCAG violations using grep/read tools, applies platform-specific rules, and produces structured findings.",
+            "instruction": "You are a meticulous accessibility auditor. Execute the\naudit checklist from 'audit_checklist' state key with absolute thoroughness.\n\nPROJECT ROOT: {{target_dir?}} — pass this as root_dir in ALL list_files and search_codebase calls.\n\n**EXECUTION PHASES:**\n\n**Phase 1: File Discovery**\n- Use `list_files(glob_pattern, root_dir=target_dir)` to enumerate files matching the glob patterns\n- Count total files to scan\n\n**Phase 2: Pattern Scanning**\n- Use `search_codebase(pattern, file_glob, root_dir=target_dir)` to find accessibility-related patterns\n- Scan for MISSING patterns (e.g., images without alt, buttons without labels)\n- Scan for INCORRECT patterns (e.g., tabIndex > 0, aria-label=\"\")\n\n**Phase 3: Deep Inspection**\n- Use `read_file_content` to examine suspicious files in detail\n- Verify context around flagged patterns\n- Check for fix templates that apply\n\n**Phase 4: Finding Classification**\nFor each violation found, classify:\n- WCAG criterion (e.g., \"1.1.1\")\n- Severity: critical (-10pts), serious (-5pts), moderate (-2pts), minor (-1pt)\n- Platform: ios / android / web\n- Fix template: add_alt_text, add_aria_label, add_heading_level, etc.\n- Whether this is a regression of a known finding\n\n**CRITICAL RULES:**\n- Be THOROUGH — scan every file in scope\n- Be SPECIFIC — file:line for every finding\n- Be ACTIONABLE — every finding needs a fix suggestion\n- Score starts at 100, subtract per finding severity\n- ALWAYS pass root_dir when calling list_files and search_codebase\n\nOutput a structured audit result as JSON with:\ntotal_violations, score, block_pr, violations[], wcag_criteria_checked, files_scanned\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Search codebase for accessibility-related patterns.\n\nArgs:\n    pattern: Regex pattern to search for in file contents.\n    file_glob: File glob filter (e.g. \"*.swift\", \"*.kt\", \"*.tsx\").\n    root_dir: Absolute path to the project root to scan. Defaults to CWD.\n\nReturns:\n    JSON string with matching files, line numbers, and content.",
+                    "name": "search_codebase",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "pattern": {
+                          "title": "Pattern",
+                          "type": "string"
+                        },
+                        "file_glob": {
+                          "default": "*",
+                          "title": "File Glob",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ],
+                      "title": "search_codebaseParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "Read a specific range of lines from a file.\n\nArgs:\n    file_path: Path to the file.\n    start_line: Starting line number (1-indexed).\n    end_line: Ending line number (inclusive).\n\nReturns:\n    File content with line numbers.",
+                    "name": "read_file_content",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "file_path": {
+                          "title": "File Path",
+                          "type": "string"
+                        },
+                        "start_line": {
+                          "default": 1,
+                          "title": "Start Line",
+                          "type": "integer"
+                        },
+                        "end_line": {
+                          "default": 50,
+                          "title": "End Line",
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ],
+                      "title": "read_file_contentParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "List files matching a glob pattern.\n\nArgs:\n    glob_pattern: Glob pattern (e.g. \"**/*.swift\", \"**/*.tsx\")\n    root_dir: Absolute path to the project root to glob from. Defaults to CWD.\n\nReturns:\n    JSON list of matching file paths.",
+                    "name": "list_files",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "glob_pattern": {
+                          "title": "Glob Pattern",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "glob_pattern"
+                      ],
+                      "title": "list_filesParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": []
+          },
+          "a11y_refinement_loop": {
+            "agent_id": "a11y_refinement_loop",
+            "agent_type": "_EvalLoopAgent",
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [
+              "a11y_evaluator",
+              "compliance_checker",
+              "targeted_scanner"
+            ]
+          },
+          "a11y_evaluator": {
+            "agent_id": "a11y_evaluator",
+            "agent_type": "LlmAgent",
+            "description": "Critically evaluates audit thoroughness. Grades pass/fail and identifies coverage gaps for targeted follow-up scans.",
+            "instruction": "You are a meticulous quality assurance analyst evaluating\nthe accessibility audit in 'audit_scan_result'.\n\n**CRITICAL RULES:**\n1. Your ONLY job is to assess audit COMPLETENESS and QUALITY.\n2. Do NOT re-audit the code — evaluate the audit process itself.\n3. Check against the WCAG AA criteria list: ['1.1.1', '1.2.1', '1.3.1', '1.3.2', '1.3.3', '1.4.1', '1.4.3', '1.4.4', '1.4.5', '2.1.1', '2.1.2', '2.4.1', '2.4.2', '2.4.3', '2.4.4', '2.4.6', '2.4.7', '3.1.1', '3.1.2', '3.2.1', '3.2.2', '3.3.1', '3.3.2', '4.1.1', '4.1.2']\n\n**EVALUATION CRITERIA:**\n- Coverage: Were all files in scope scanned?\n- Depth: Were WCAG criteria thoroughly checked?\n- Specificity: Are findings specific (file:line, not vague)?\n- Actionability: Do findings have clear fix suggestions?\n- Score validity: Does the score calculation seem correct?\n\n**Be CRITICAL.** If you find significant gaps:\n- Grade \"fail\"\n- List specific gaps (which WCAG criteria missed, which files unscanned)\n- Provide follow-up scan targets (file patterns, WCAG criteria, component names)\n\nIf audit is thorough, grade \"pass\".\n\nYour response must be a single JSON object matching the A11yFeedback schema.\n",
+            "tools": [],
+            "sub_agents": []
+          },
+          "compliance_checker": {
+            "agent_id": "compliance_checker",
+            "agent_type": "ComplianceChecker",
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": []
+          },
+          "targeted_scanner": {
+            "agent_id": "targeted_scanner",
+            "agent_type": "LlmAgent",
+            "description": "Executes targeted follow-up scans based on evaluator feedback. Focuses on specific gaps, missed files, and unverified WCAG criteria.",
+            "instruction": "You are a specialist accessibility auditor executing a\ntargeted refinement pass. You have been activated because the previous\naudit was graded as 'fail' by the evaluator.\n\nPROJECT ROOT: {target_dir?} — pass this as root_dir in ALL list_files and search_codebase calls.\n\n1. Review 'audit_evaluation' state key to understand the feedback and gaps.\n2. For EACH gap listed:\n   - Use `search_codebase(pattern, file_glob, root_dir=target_dir)` with specific patterns\n   - Use `read_file_content` to inspect suspicious files\n   - Check the WCAG criteria that were missed\n3. MERGE new findings with existing findings in 'audit_scan_result'.\n4. Your output MUST be the complete, improved audit result with all violations.\n5. Recalculate the score after adding new findings.\n6. ALWAYS pass root_dir when calling list_files and search_codebase.\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Search codebase for accessibility-related patterns.\n\nArgs:\n    pattern: Regex pattern to search for in file contents.\n    file_glob: File glob filter (e.g. \"*.swift\", \"*.kt\", \"*.tsx\").\n    root_dir: Absolute path to the project root to scan. Defaults to CWD.\n\nReturns:\n    JSON string with matching files, line numbers, and content.",
+                    "name": "search_codebase",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "pattern": {
+                          "title": "Pattern",
+                          "type": "string"
+                        },
+                        "file_glob": {
+                          "default": "*",
+                          "title": "File Glob",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ],
+                      "title": "search_codebaseParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "Read a specific range of lines from a file.\n\nArgs:\n    file_path: Path to the file.\n    start_line: Starting line number (1-indexed).\n    end_line: Ending line number (inclusive).\n\nReturns:\n    File content with line numbers.",
+                    "name": "read_file_content",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "file_path": {
+                          "title": "File Path",
+                          "type": "string"
+                        },
+                        "start_line": {
+                          "default": 1,
+                          "title": "Start Line",
+                          "type": "integer"
+                        },
+                        "end_line": {
+                          "default": 50,
+                          "title": "End Line",
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ],
+                      "title": "read_file_contentParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "List files matching a glob pattern.\n\nArgs:\n    glob_pattern: Glob pattern (e.g. \"**/*.swift\", \"**/*.tsx\")\n    root_dir: Absolute path to the project root to glob from. Defaults to CWD.\n\nReturns:\n    JSON list of matching file paths.",
+                    "name": "list_files",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "glob_pattern": {
+                          "title": "Glob Pattern",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "glob_pattern"
+                      ],
+                      "title": "list_filesParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": []
+          },
+          "audit_report_composer": {
+            "agent_id": "audit_report_composer",
+            "agent_type": "LlmAgent",
+            "description": "Transforms audit findings into a professional, actionable accessibility audit report with fix suggestions and priority ranking.",
+            "instruction": "Transform the audit data into a polished, professional\naccessibility audit report.\n\n---\n\n### INPUT DATA\n* Audit Checklist: `{audit_checklist}`\n* Scan Results: `{audit_scan_result}`\n* Known Findings: `{known_findings?}`\n\n---\n\n### REPORT STRUCTURE\n\n## 1. Executive Summary\n- Platform audited\n- Overall score and compliance status\n- PR blocking decision with rationale\n\n## 2. Violations by Severity\nFor each severity level (critical → minor):\n- Finding ID, WCAG criterion, title\n- File:line reference\n- Description of issue\n- Code snippet (if available)\n- Suggested fix with code example\n\n## 3. WCAG Coverage Matrix\nTable showing which AA criteria were checked and pass/fail status.\n\n## 4. Regression Analysis\n- Any previously resolved findings that reappeared\n- New findings vs known findings\n\n## 5. Remediation Priority\nOrdered list of fixes by impact (critical first, then serious, etc.)\n\n## 6. Fix Templates\nFor each unique fix_template used, provide the platform-specific code pattern.\n\n---\n\n### RULES\n- Every finding MUST have: file path, WCAG criterion, severity, fix suggestion\n- Use code snippets from the scan results — do not fabricate code\n- Group by severity, then by WCAG criterion within each severity\n- Include the compliance threshold and whether the audit passes or fails\n",
+            "tools": [],
+            "sub_agents": []
+          }
+        },
+        "turns": [
+          {
+            "turn_index": 0,
+            "turn_id": "turn_0",
+            "events": [
+              {
+                "author": "interactive_audit_planner",
+                "content": {
+                  "parts": [
+                    {
+                      "text": "*   Input: `[TARGET_DIR: /tmp/sample-android-app] Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.`\n    *   Target Directory: `/tmp/sample-android-app`\n    *   Request: `Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.`\n    *   Role: `interactive_audit_planner`\n    *   Goal: Convert request to a structured audit plan using `scope_analyzer`.\n\n    *   Extract `target_dir`: `/tmp/sample-android-app`.\n    *   Strip prefix: `Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.`\n    *   Action: Call `scope_analyzer` with the cleaned request. Note: The tool `scope_analyzer` only takes `request`. The system prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". However, looking at the `scope_analyzer` tool definition provided: `{\"description\":\"Analyzes the audit request...\",\"name\":\"scope_analyzer\",\"parameters_json_schema\":{\"type\":\"object\",\"properties\":{\"request\":{\"type\":\"string\"}},\"required\":[\"request\"]}}`. It *doesn't* have a `root_dir` parameter in its schema.\n    *   Wait, the system prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". I should check if I can add it or if I should just follow the schema. Usually, schema takes precedence for the tool call, but the system prompt gives a specific instruction.\n    *   Let's re-read the tool definition for `scope_analyzer`. It only defines `request`. If I pass `root_dir`, it might be ignored or cause an error depending on the runtime. But the system prompt instruction is explicit: \"All tool calls that accept root_dir MUST pass root_dir=<path>\". If the tool *doesn't* accept it in the schema, I cannot pass it.\n    *   Wait, if the tool *doesn't* accept it, the instruction \"All tool calls that accept root_dir...\" implies only those that *do* accept it should.\n    *   Let's double-check the provided tool list.\n        *   `transfer_to_agent`: takes `agent_name`.\n        *   `scope_analyzer`: takes `request`.\n    *   Neither accepts `root_dir`.\n    *   Wait, maybe the `scope_analyzer` tool *should* have it? No, I must follow the provided JSON schema.\n    *   However, the prompt says \"Store it in session state key 'target_dir'\". This suggests the backend manages the session state, and I just need to identify it.\n\n    *   Request to `scope_analyzer`: \"Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes. (Root Directory: /tmp/sample-android-app)\" - Or I just pass the request and let the session state handle it. But the instruction says \"Strip the [TARGET_DIR: ...] prefix before treating the rest as the audit request.\"\n\n    *   So:\n        1.  Extract `/tmp/sample-android-app`.\n        2.  Call `scope_analyzer(request=\"Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.\")`.\n\n    *   Wait, I should check if the `scope_analyzer` tool actually accepts `root_dir` even if not in the schema? No, I should follow the schema. But the system prompt says \"All tool calls that accept root_dir MUST pass root_dir=<path>\". This is a conflict if the schema doesn't show it.\n    *   Let's look at the prompt again: \"**TARGET DIRECTORY EXTRACTION (check this first):** ... Store it in session state key 'target_dir' ... All tool calls that accept root_dir MUST pass root_dir=<path>.\"\n    *   Since `scope_analyzer` does NOT have `root_dir` in its schema, I won't pass it.\n\n    *   Plan:\n        Call `scope_analyzer` with the request.",
+                      "thought": true
+                    },
+                    {
+                      "text": "{\"name\": \"scope_analyzer\", \"parameters\": {\"request\": \"Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes.\"}}"
+                    }
+                  ],
+                  "role": "model"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "prompt": {
+        "parts": [
+          {
+            "text": "What platforms and WCAG 2.1 criteria do you support for accessibility audits? How does the audit process work?"
+          }
+        ],
+        "role": "user"
+      },
+      "responses": [
+        {
+          "response": {
+            "parts": [
+              {
+                "text": "The user is asking about the platforms, WCAG 2.1 criteria supported, and the overall audit process.\n\n    - Role: Accessibility audit planning assistant.\n    - Function: Convert a11y requests into structured audit plans.\n    - Workflow: Plan (scope_analyzer) -> Refine (feedback) -> Execute (a11y_audit_pipeline) -> Report.\n    - Critical Rules: Do not audit directly; plan then delegate.\n\n    - I don't have a specific \"supported platforms\" list in my prompt, but the `scope_analyzer` and `a11y_audit_pipeline` are the tools I use. Typically, WCAG 2.1 AA is the standard mentioned in the `a11y_audit_pipeline` description.\n    - The process is clearly outlined in the \"WORKFLOW\" section.\n\n    - Explain the process: Plan -> Refine -> Execute -> Report.\n    - Mention that the `scope_analyzer` determines the specific scope (files, platforms) based on the user's project.\n    - Mention WCAG 2.1 AA as the standard used by the pipeline.\n\n    - I am the `interactive_audit_planner`.\n    - I should answer this question myself as it's about my function and process.\n\n    - *Process*:\n        1. **Plan**: I use a `scope_analyzer` to look at your request and project files to create a structured audit plan (defining platform, files, and WCAG criteria).\n        2. **Refine**: We collaborate to tweak the plan until you are satisfied.\n        3. **Execute**: Once you give explicit approval, I delegate the work to the `a11y_audit_pipeline`.\n        4. **Report**: The pipeline performs the scanning and evaluation, and I present the final WCAG 2.1 AA report to you.\n    - *Platforms/Criteria*: The system is designed to target WCAG 2.1 AA standards. The specific platforms (Web, Mobile, etc.) and files are determined during the scoping phase based on the codebase provided.I support accessibility audits based on the **WCAG 2.1 AA** standards. While the specific platforms (such as Web or Mobile) and target files are determined dynamically during the scoping phase based on your project's codebase, the goal is always to ensure compliance with the WCAG 2.1 AA criteria.\n\n**How the audit process works:**\n\n1.  **Plan**: You provide an audit request (and optionally a target directory). I use a `scope_analyzer` to analyze your project and create a structured audit plan that defines the platform, the specific files to be scanned, the relevant WCAG criteria, and priority areas.\n2.  **Refine**: I present this plan to you. We then iterate on it—incorporating your feedback and adjustments—until the scope is exactly what you need.\n3.  **Execute**: Once you give **explicit approval** of the plan, I delegate the execution to the `a11y_audit_pipeline`. This agent performs the actual iterative scanning and evaluation.\n4.  **Report**: After the pipeline completes its work, I present the final findings and the comprehensive accessibility report to you.\n\nIn short: **I plan and refine, then I delegate the technical scanning to the pipeline.**"
+              }
+            ],
+            "role": "model"
+          }
+        }
+      ],
+      "eval_case_id": "capabilities_query",
+      "agent_data": {
+        "agents": {
+          "interactive_audit_planner": {
+            "agent_id": "interactive_audit_planner",
+            "agent_type": "LlmAgent",
+            "description": "The primary a11y audit assistant. Collaborates with the user to define audit scope, then executes the full audit pipeline upon approval.",
+            "instruction": "You are an accessibility audit planning assistant.\nYour primary function is to convert ANY a11y request into a structured audit plan.\n\n**TARGET DIRECTORY EXTRACTION (check this first):**\nIf the user's message starts with \"[TARGET_DIR: <path>]\", extract <path> as the\nproject root directory. Store it in session state key \"target_dir\". Strip the\n\"[TARGET_DIR: ...]\" prefix before treating the rest as the audit request.\nAll tool calls that accept root_dir MUST pass root_dir=<path>.\nIf no [TARGET_DIR: ...] prefix is present, use root_dir=\".\" (current directory).\n\n**CRITICAL RULES:**\n1. Never audit code directly. Your job is to PLAN, then DELEGATE.\n2. Use `scope_analyzer` tool to create an audit plan for the user's request.\n3. Present the plan clearly: platform, scope (files), WCAG criteria, priority areas.\n4. Incorporate user feedback until the plan is approved.\n5. Once user gives EXPLICIT approval, delegate to `a11y_audit_pipeline`.\n\n**WORKFLOW:**\n1. **Plan**: Use scope_analyzer → present audit plan\n2. **Refine**: Incorporate feedback → update plan\n3. **Execute**: User approves → delegate to a11y_audit_pipeline\n4. **Report**: Pipeline returns → present findings to user\n\nCurrent date: 2026-06-04\nDo not perform any scanning yourself. Plan → Refine → Delegate.\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Analyzes the audit request, determines scope (files, platform, WCAG criteria), and creates a targeted audit plan.",
+                    "name": "scope_analyzer",
+                    "parameters_json_schema": {
+                      "type": "object",
+                      "properties": {
+                        "request": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "request"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": [
+              "a11y_audit_pipeline"
+            ]
+          },
+          "a11y_audit_pipeline": {
+            "agent_id": "a11y_audit_pipeline",
+            "agent_type": "_EvalSequentialAgent",
+            "description": "Executes a pre-scoped accessibility audit. Performs iterative scanning, evaluation, and composes a final WCAG 2.1 AA report.",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [
+              "platform_detector",
+              "a11y_scanner",
+              "a11y_refinement_loop",
+              "audit_report_composer"
+            ]
+          },
+          "platform_detector": {
+            "agent_id": "platform_detector",
+            "agent_type": "LlmAgent",
+            "description": "Detects platform from files, loads appropriate a11y ruleset, and creates a checklist of WCAG criteria to verify.",
+            "instruction": "You are a platform detection specialist. Given the audit plan,\nidentify the target platform and create a structured audit checklist.\n\n**Platform Detection Rules:**\n- `.swift`, `.xib`, `.storyboard`, SwiftUI → **iOS** (VoiceOver, UIKit, SwiftUI)\n- `.kt`, `.kts`, Compose, XML layouts → **Android** (TalkBack, Compose, Views)\n- `.tsx`, `.jsx`, `.html`, `.css`, ARIA → **Web** (Screen readers, keyboard, ARIA)\n- Mixed → **cross-platform** (run all applicable checklists)\n\n**Your output must include:**\n1. Platform: ios / android / web / cross-platform\n2. Checklist: WCAG criteria to verify (from the audit plan)\n3. Platform-specific patterns to scan for:\n   - iOS: accessibilityLabel, accessibilityTraits, isAccessibilityElement, .header, accessibilityHint\n   - Android: contentDescription, Modifier.semantics{}, heading(), mergeDescendants, onClickLabel\n   - Web: aria-label, role, tabIndex, :focus-visible, alt, <label>, heading hierarchy\n4. File glob patterns for the scanner\n\nOutput as structured JSON.\n",
+            "tools": [],
+            "sub_agents": []
+          },
+          "a11y_scanner": {
+            "agent_id": "a11y_scanner",
+            "agent_type": "LlmAgent",
+            "description": "Scans the codebase for WCAG violations using grep/read tools, applies platform-specific rules, and produces structured findings.",
+            "instruction": "You are a meticulous accessibility auditor. Execute the\naudit checklist from 'audit_checklist' state key with absolute thoroughness.\n\nPROJECT ROOT: {{target_dir?}} — pass this as root_dir in ALL list_files and search_codebase calls.\n\n**EXECUTION PHASES:**\n\n**Phase 1: File Discovery**\n- Use `list_files(glob_pattern, root_dir=target_dir)` to enumerate files matching the glob patterns\n- Count total files to scan\n\n**Phase 2: Pattern Scanning**\n- Use `search_codebase(pattern, file_glob, root_dir=target_dir)` to find accessibility-related patterns\n- Scan for MISSING patterns (e.g., images without alt, buttons without labels)\n- Scan for INCORRECT patterns (e.g., tabIndex > 0, aria-label=\"\")\n\n**Phase 3: Deep Inspection**\n- Use `read_file_content` to examine suspicious files in detail\n- Verify context around flagged patterns\n- Check for fix templates that apply\n\n**Phase 4: Finding Classification**\nFor each violation found, classify:\n- WCAG criterion (e.g., \"1.1.1\")\n- Severity: critical (-10pts), serious (-5pts), moderate (-2pts), minor (-1pt)\n- Platform: ios / android / web\n- Fix template: add_alt_text, add_aria_label, add_heading_level, etc.\n- Whether this is a regression of a known finding\n\n**CRITICAL RULES:**\n- Be THOROUGH — scan every file in scope\n- Be SPECIFIC — file:line for every finding\n- Be ACTIONABLE — every finding needs a fix suggestion\n- Score starts at 100, subtract per finding severity\n- ALWAYS pass root_dir when calling list_files and search_codebase\n\nOutput a structured audit result as JSON with:\ntotal_violations, score, block_pr, violations[], wcag_criteria_checked, files_scanned\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Search codebase for accessibility-related patterns.\n\nArgs:\n    pattern: Regex pattern to search for in file contents.\n    file_glob: File glob filter (e.g. \"*.swift\", \"*.kt\", \"*.tsx\").\n    root_dir: Absolute path to the project root to scan. Defaults to CWD.\n\nReturns:\n    JSON string with matching files, line numbers, and content.",
+                    "name": "search_codebase",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "pattern": {
+                          "title": "Pattern",
+                          "type": "string"
+                        },
+                        "file_glob": {
+                          "default": "*",
+                          "title": "File Glob",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ],
+                      "title": "search_codebaseParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "Read a specific range of lines from a file.\n\nArgs:\n    file_path: Path to the file.\n    start_line: Starting line number (1-indexed).\n    end_line: Ending line number (inclusive).\n\nReturns:\n    File content with line numbers.",
+                    "name": "read_file_content",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "file_path": {
+                          "title": "File Path",
+                          "type": "string"
+                        },
+                        "start_line": {
+                          "default": 1,
+                          "title": "Start Line",
+                          "type": "integer"
+                        },
+                        "end_line": {
+                          "default": 50,
+                          "title": "End Line",
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ],
+                      "title": "read_file_contentParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "List files matching a glob pattern.\n\nArgs:\n    glob_pattern: Glob pattern (e.g. \"**/*.swift\", \"**/*.tsx\")\n    root_dir: Absolute path to the project root to glob from. Defaults to CWD.\n\nReturns:\n    JSON list of matching file paths.",
+                    "name": "list_files",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "glob_pattern": {
+                          "title": "Glob Pattern",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "glob_pattern"
+                      ],
+                      "title": "list_filesParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": []
+          },
+          "a11y_refinement_loop": {
+            "agent_id": "a11y_refinement_loop",
+            "agent_type": "_EvalLoopAgent",
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [
+              "a11y_evaluator",
+              "compliance_checker",
+              "targeted_scanner"
+            ]
+          },
+          "a11y_evaluator": {
+            "agent_id": "a11y_evaluator",
+            "agent_type": "LlmAgent",
+            "description": "Critically evaluates audit thoroughness. Grades pass/fail and identifies coverage gaps for targeted follow-up scans.",
+            "instruction": "You are a meticulous quality assurance analyst evaluating\nthe accessibility audit in 'audit_scan_result'.\n\n**CRITICAL RULES:**\n1. Your ONLY job is to assess audit COMPLETENESS and QUALITY.\n2. Do NOT re-audit the code — evaluate the audit process itself.\n3. Check against the WCAG AA criteria list: ['1.1.1', '1.2.1', '1.3.1', '1.3.2', '1.3.3', '1.4.1', '1.4.3', '1.4.4', '1.4.5', '2.1.1', '2.1.2', '2.4.1', '2.4.2', '2.4.3', '2.4.4', '2.4.6', '2.4.7', '3.1.1', '3.1.2', '3.2.1', '3.2.2', '3.3.1', '3.3.2', '4.1.1', '4.1.2']\n\n**EVALUATION CRITERIA:**\n- Coverage: Were all files in scope scanned?\n- Depth: Were WCAG criteria thoroughly checked?\n- Specificity: Are findings specific (file:line, not vague)?\n- Actionability: Do findings have clear fix suggestions?\n- Score validity: Does the score calculation seem correct?\n\n**Be CRITICAL.** If you find significant gaps:\n- Grade \"fail\"\n- List specific gaps (which WCAG criteria missed, which files unscanned)\n- Provide follow-up scan targets (file patterns, WCAG criteria, component names)\n\nIf audit is thorough, grade \"pass\".\n\nYour response must be a single JSON object matching the A11yFeedback schema.\n",
+            "tools": [],
+            "sub_agents": []
+          },
+          "compliance_checker": {
+            "agent_id": "compliance_checker",
+            "agent_type": "ComplianceChecker",
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": []
+          },
+          "targeted_scanner": {
+            "agent_id": "targeted_scanner",
+            "agent_type": "LlmAgent",
+            "description": "Executes targeted follow-up scans based on evaluator feedback. Focuses on specific gaps, missed files, and unverified WCAG criteria.",
+            "instruction": "You are a specialist accessibility auditor executing a\ntargeted refinement pass. You have been activated because the previous\naudit was graded as 'fail' by the evaluator.\n\nPROJECT ROOT: {target_dir?} — pass this as root_dir in ALL list_files and search_codebase calls.\n\n1. Review 'audit_evaluation' state key to understand the feedback and gaps.\n2. For EACH gap listed:\n   - Use `search_codebase(pattern, file_glob, root_dir=target_dir)` with specific patterns\n   - Use `read_file_content` to inspect suspicious files\n   - Check the WCAG criteria that were missed\n3. MERGE new findings with existing findings in 'audit_scan_result'.\n4. Your output MUST be the complete, improved audit result with all violations.\n5. Recalculate the score after adding new findings.\n6. ALWAYS pass root_dir when calling list_files and search_codebase.\n",
+            "tools": [
+              {
+                "function_declarations": [
+                  {
+                    "description": "Search codebase for accessibility-related patterns.\n\nArgs:\n    pattern: Regex pattern to search for in file contents.\n    file_glob: File glob filter (e.g. \"*.swift\", \"*.kt\", \"*.tsx\").\n    root_dir: Absolute path to the project root to scan. Defaults to CWD.\n\nReturns:\n    JSON string with matching files, line numbers, and content.",
+                    "name": "search_codebase",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "pattern": {
+                          "title": "Pattern",
+                          "type": "string"
+                        },
+                        "file_glob": {
+                          "default": "*",
+                          "title": "File Glob",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ],
+                      "title": "search_codebaseParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "Read a specific range of lines from a file.\n\nArgs:\n    file_path: Path to the file.\n    start_line: Starting line number (1-indexed).\n    end_line: Ending line number (inclusive).\n\nReturns:\n    File content with line numbers.",
+                    "name": "read_file_content",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "file_path": {
+                          "title": "File Path",
+                          "type": "string"
+                        },
+                        "start_line": {
+                          "default": 1,
+                          "title": "Start Line",
+                          "type": "integer"
+                        },
+                        "end_line": {
+                          "default": 50,
+                          "title": "End Line",
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ],
+                      "title": "read_file_contentParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              },
+              {
+                "function_declarations": [
+                  {
+                    "description": "List files matching a glob pattern.\n\nArgs:\n    glob_pattern: Glob pattern (e.g. \"**/*.swift\", \"**/*.tsx\")\n    root_dir: Absolute path to the project root to glob from. Defaults to CWD.\n\nReturns:\n    JSON list of matching file paths.",
+                    "name": "list_files",
+                    "parameters_json_schema": {
+                      "properties": {
+                        "glob_pattern": {
+                          "title": "Glob Pattern",
+                          "type": "string"
+                        },
+                        "root_dir": {
+                          "default": ".",
+                          "title": "Root Dir",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "glob_pattern"
+                      ],
+                      "title": "list_filesParams",
+                      "type": "object"
+                    }
+                  }
+                ]
+              }
+            ],
+            "sub_agents": []
+          },
+          "audit_report_composer": {
+            "agent_id": "audit_report_composer",
+            "agent_type": "LlmAgent",
+            "description": "Transforms audit findings into a professional, actionable accessibility audit report with fix suggestions and priority ranking.",
+            "instruction": "Transform the audit data into a polished, professional\naccessibility audit report.\n\n---\n\n### INPUT DATA\n* Audit Checklist: `{audit_checklist}`\n* Scan Results: `{audit_scan_result}`\n* Known Findings: `{known_findings?}`\n\n---\n\n### REPORT STRUCTURE\n\n## 1. Executive Summary\n- Platform audited\n- Overall score and compliance status\n- PR blocking decision with rationale\n\n## 2. Violations by Severity\nFor each severity level (critical → minor):\n- Finding ID, WCAG criterion, title\n- File:line reference\n- Description of issue\n- Code snippet (if available)\n- Suggested fix with code example\n\n## 3. WCAG Coverage Matrix\nTable showing which AA criteria were checked and pass/fail status.\n\n## 4. Regression Analysis\n- Any previously resolved findings that reappeared\n- New findings vs known findings\n\n## 5. Remediation Priority\nOrdered list of fixes by impact (critical first, then serious, etc.)\n\n## 6. Fix Templates\nFor each unique fix_template used, provide the platform-specific code pattern.\n\n---\n\n### RULES\n- Every finding MUST have: file path, WCAG criterion, severity, fix suggestion\n- Use code snippets from the scan results — do not fabricate code\n- Group by severity, then by WCAG criterion within each severity\n- Include the compliance threshold and whether the audit passes or fails\n",
+            "tools": [],
+            "sub_agents": []
+          }
+        },
+        "turns": [
+          {
+            "turn_index": 0,
+            "turn_id": "turn_0",
+            "events": [
+              {
+                "author": "interactive_audit_planner",
+                "content": {
+                  "parts": [
+                    {
+                      "text": "The user is asking about the platforms, WCAG 2.1 criteria supported, and the overall audit process.\n\n    - Role: Accessibility audit planning assistant.\n    - Function: Convert a11y requests into structured audit plans.\n    - Workflow: Plan (scope_analyzer) -> Refine (feedback) -> Execute (a11y_audit_pipeline) -> Report.\n    - Critical Rules: Do not audit directly; plan then delegate.\n\n    - I don't have a specific \"supported platforms\" list in my prompt, but the `scope_analyzer` and `a11y_audit_pipeline` are the tools I use. Typically, WCAG 2.1 AA is the standard mentioned in the `a11y_audit_pipeline` description.\n    - The process is clearly outlined in the \"WORKFLOW\" section.\n\n    - Explain the process: Plan -> Refine -> Execute -> Report.\n    - Mention that the `scope_analyzer` determines the specific scope (files, platforms) based on the user's project.\n    - Mention WCAG 2.1 AA as the standard used by the pipeline.\n\n    - I am the `interactive_audit_planner`.\n    - I should answer this question myself as it's about my function and process.\n\n    - *Process*:\n        1. **Plan**: I use a `scope_analyzer` to look at your request and project files to create a structured audit plan (defining platform, files, and WCAG criteria).\n        2. **Refine**: We collaborate to tweak the plan until you are satisfied.\n        3. **Execute**: Once you give explicit approval, I delegate the work to the `a11y_audit_pipeline`.\n        4. **Report**: The pipeline performs the scanning and evaluation, and I present the final WCAG 2.1 AA report to you.\n    - *Platforms/Criteria*: The system is designed to target WCAG 2.1 AA standards. The specific platforms (Web, Mobile, etc.) and files are determined during the scoping phase based on the codebase provided.",
+                      "thought": true
+                    },
+                    {
+                      "text": "I support accessibility audits based on the **WCAG 2.1 AA** standards. While the specific platforms (such as Web or Mobile) and target files are determined dynamically during the scoping phase based on your project's codebase, the goal is always to ensure compliance with the WCAG 2.1 AA criteria.\n\n**How the audit process works:**\n\n1.  **Plan**: You provide an audit request (and optionally a target directory). I use a `scope_analyzer` to analyze your project and create a structured audit plan that defines the platform, the specific files to be scanned, the relevant WCAG criteria, and priority areas.\n2.  **Refine**: I present this plan to you. We then iterate on it—incorporating your feedback and adjustments—until the scope is exactly what you need.\n3.  **Execute**: Once you give **explicit approval** of the plan, I delegate the execution to the `a11y_audit_pipeline`. This agent performs the actual iterative scanning and evaluation.\n4.  **Report**: After the pipeline completes its work, I present the final findings and the comprehensive accessibility report to you.\n\nIn short: **I plan and refine, then I delegate the technical scanning to the pipeline.**"
+                    }
+                  ],
+                  "role": "model"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
