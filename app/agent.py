@@ -277,10 +277,12 @@ def build_report_callback(callback_context: CallbackContext) -> genai_types.Cont
 
 class _EvalSequentialAgent(SequentialAgent):
     instruction: str = ""
+    tools: list = []
 
 
 class _EvalLoopAgent(LoopAgent):
     instruction: str = ""
+    tools: list = []
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -295,6 +297,7 @@ class ComplianceChecker(BaseAgent):
     """
 
     instruction: str = ""
+    tools: list = []
 
     def __init__(self, name: str):
         super().__init__(name=name)
