@@ -14,12 +14,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 make install          # installs Python deps via uv + npm deps for frontend
 ```
 
+Requires Python `>=3.10,<3.13`.
+
 ### Backend
 
 ```bash
 ./run.sh              # canonical local dev: starts ADK server (:8000) + validator sidecar (:8001)
+                      # (checks port 8001 is free before starting; Ctrl-C terminates both)
 
 make dev              # same as run.sh but via make (backend + frontend concurrently)
+make bold             # all three: backend + frontend + playground
 make dev-backend      # ADK API server only: uv run adk api_server app --allow_origins="*"
 make playground       # ADK web UI on :8501
 
@@ -51,9 +55,9 @@ uv run adk eval app tests/eval/datasets/basic-dataset.json
 ### Lint
 
 ```bash
-make lint             # codespell + ruff check + ruff format + mypy
+make lint                          # codespell + ruff check + ruff format + mypy
 uv run ruff check . --fix
-uv run mypy .
+uv run mypy .                      # requires: uv sync --dev --extra lint first
 ```
 
 ### Environment Setup
@@ -79,6 +83,8 @@ frontend (3000)
 - `run.sh` launches both backend processes; `make dev` adds the frontend.
 - `app/fast_api_app.py` is the production wrapper (adds `/feedback` endpoint, Cloud Logging, telemetry). Local dev uses `adk api_server app` instead.
 - `app/path_validator.py` is a standalone FastAPI service (`GET /validate?path=<abs_path>`) that checks whether a directory exists, counts files (capped at 50k), and detects platforms via file extensions — called by the frontend before starting an expensive LLM audit.
+- `app/app_utils/telemetry.py` — configures OpenTelemetry + GenAI prompt-response logging to GCS (activated by `LOGS_BUCKET_NAME` env var; production only).
+- `app/app_utils/typing.py` — `Feedback` Pydantic model used by the `/feedback` endpoint in `fast_api_app.py`.
 
 ### Backend — Google ADK Agent Pipeline (`app/agent.py`)
 
@@ -143,4 +149,8 @@ Score starts at 100. Deductions: critical −10, serious −5, moderate −2, mi
 - `basic-dataset.json` — quick smoke tests
 - `full-pipeline-dataset.json` — end-to-end pipeline coverage
 
-Run with: `uv run adk eval app tests/eval/datasets/<file>.json` (requires `pip install -e ".[eval]"` or `uv sync --extra eval`).
+Run with: `uv run adk eval app tests/eval/datasets/<file>.json` (requires `uv sync --extra eval`).
+
+Eval metrics are configured in `tests/eval/eval_config.yaml` (includes a custom `custom_audit_plan_quality` metric scored 1–5).
+
+**Note:** `tests/unit/` currently contains only a placeholder test. Real unit tests for `agent.py`, `config.py`, and tools belong there.
