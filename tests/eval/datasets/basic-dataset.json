@@ -1,31 +1,72 @@
 {
+  "eval_set_id": "a11y_basic",
   "eval_cases": [
     {
-      "eval_case_id": "audit_plan_web_frontend",
-      "prompt": {
-        "role": "user",
-        "parts": [{"text": "[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling."}]
+      "evalId": "audit_plan_web_frontend",
+      "conversation": [
+        {
+          "invocationId": "inv-001",
+          "userContent": {
+            "role": "user",
+            "parts": [{"text": "[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript web app for WCAG 2.1 AA accessibility compliance. Focus on color contrast, keyboard navigation, and ARIA labeling."}]
+          }
+        }
+      ],
+      "sessionInput": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
       }
     },
     {
-      "eval_case_id": "audit_plan_ios_swift",
-      "prompt": {
-        "role": "user",
-        "parts": [{"text": "[TARGET_DIR: /tmp/sample-ios-app] Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling."}]
+      "evalId": "audit_plan_ios_swift",
+      "conversation": [
+        {
+          "invocationId": "inv-002",
+          "userContent": {
+            "role": "user",
+            "parts": [{"text": "[TARGET_DIR: /tmp/sample-ios-app] Audit this iOS Swift app for WCAG 2.1 AA compliance. I'm most concerned about VoiceOver support and Dynamic Type scaling."}]
+          }
+        }
+      ],
+      "sessionInput": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
       }
     },
     {
-      "eval_case_id": "audit_plan_android",
-      "prompt": {
-        "role": "user",
-        "parts": [{"text": "[TARGET_DIR: /tmp/sample-android-app] Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes."}]
+      "evalId": "audit_plan_android",
+      "conversation": [
+        {
+          "invocationId": "inv-003",
+          "userContent": {
+            "role": "user",
+            "parts": [{"text": "[TARGET_DIR: /tmp/sample-android-app] Run a WCAG 2.1 AA accessibility audit on this Android Kotlin app with Jetpack Compose. Focus on TalkBack support and touch target sizes."}]
+          }
+        }
+      ],
+      "sessionInput": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
       }
     },
     {
-      "eval_case_id": "capabilities_query",
-      "prompt": {
-        "role": "user",
-        "parts": [{"text": "What platforms and WCAG 2.1 criteria do you support for accessibility audits? How does the audit process work?"}]
+      "evalId": "capabilities_query",
+      "conversation": [
+        {
+          "invocationId": "inv-004",
+          "userContent": {
+            "role": "user",
+            "parts": [{"text": "What platforms and WCAG 2.1 criteria do you support for accessibility audits? How does the audit process work?"}]
+          }
+        }
+      ],
+      "sessionInput": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
       }
     }
   ]

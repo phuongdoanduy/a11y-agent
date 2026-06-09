@@ -1,81 +1,52 @@
 {
+  "eval_set_id": "a11y_full_pipeline",
   "eval_cases": [
     {
-      "eval_case_id": "full_audit_web_react_with_approval",
-      "agent_data": {
-        "agents": {
-          "interactive_audit_planner": {
-            "agent_id": "interactive_audit_planner",
-            "instruction": "You are an accessibility audit planning assistant. Plan, then delegate to a11y_audit_pipeline upon explicit user approval."
+      "evalId": "full_audit_web_react_with_approval",
+      "conversation": [
+        {
+          "invocationId": "inv-001",
+          "userContent": {
+            "role": "user",
+            "parts": [{"text": "[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript dashboard for WCAG 2.1 AA compliance."}]
           }
         },
-        "turns": [
-          {
-            "turn_index": 0,
-            "events": [
-              {
-                "author": "user",
-                "content": {
-                  "role": "user",
-                  "parts": [{"text": "[TARGET_DIR: /Users/ddphuong/Projects/epost-workspace/a11y-agent/frontend] Audit this React TypeScript dashboard for WCAG 2.1 AA compliance."}]
-                }
-              },
-              {
-                "author": "interactive_audit_planner",
-                "content": {
-                  "role": "model",
-                  "parts": [{"text": "I've analyzed the project structure and created the following audit plan:\n\n**Platform:** Web (React + TypeScript)\n\n**Scope:**\n- `src/**/*.tsx` — React components\n- `src/**/*.ts` — TypeScript modules\n- `index.html` — HTML entry point\n\n**WCAG 2.1 AA Criteria to verify:**\n- 1.1.1 Non-text Content (images, icons without alt text)\n- 1.3.1 Info and Relationships (semantic HTML, ARIA roles)\n- 1.4.3 Contrast (Minimum) (text/background color ratios)\n- 2.1.1 Keyboard (all functionality accessible by keyboard)\n- 2.4.3 Focus Order (logical focus sequence)\n- 2.4.6 Headings and Labels (descriptive headings)\n- 3.3.1 Error Identification (form validation feedback)\n- 4.1.2 Name, Role, Value (interactive elements labeled)\n\n**Priority Areas:**\n- Forms and input fields (error handling, labels)\n- Interactive buttons and controls (aria-label, role)\n- Images and icons (alt attributes)\n- Color contrast in dashboard cards and charts\n- Keyboard focus management in modals/dialogs\n\nShall I proceed with the full accessibility audit?"}]
-                }
-              },
-              {
-                "author": "user",
-                "content": {
-                  "role": "user",
-                  "parts": [{"text": "Yes, please proceed with the full audit."}]
-                }
-              }
-            ]
+        {
+          "invocationId": "inv-002",
+          "userContent": {
+            "role": "user",
+            "parts": [{"text": "Yes, please proceed with the full audit."}]
           }
-        ]
+        }
+      ],
+      "sessionInput": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
       }
     },
     {
-      "eval_case_id": "full_audit_ios_with_approval",
-      "agent_data": {
-        "agents": {
-          "interactive_audit_planner": {
-            "agent_id": "interactive_audit_planner",
-            "instruction": "You are an accessibility audit planning assistant. Plan, then delegate to a11y_audit_pipeline upon explicit user approval."
+      "evalId": "full_audit_ios_with_approval",
+      "conversation": [
+        {
+          "invocationId": "inv-001",
+          "userContent": {
+            "role": "user",
+            "parts": [{"text": "[TARGET_DIR: /tmp/sample-ios-app] Audit this SwiftUI iOS app for WCAG 2.1 AA compliance. We recently added a new onboarding flow and want to check VoiceOver support."}]
           }
         },
-        "turns": [
-          {
-            "turn_index": 0,
-            "events": [
-              {
-                "author": "user",
-                "content": {
-                  "role": "user",
-                  "parts": [{"text": "[TARGET_DIR: /tmp/sample-ios-app] Audit this SwiftUI iOS app for WCAG 2.1 AA compliance. We recently added a new onboarding flow and want to check VoiceOver support."}]
-                }
-              },
-              {
-                "author": "interactive_audit_planner",
-                "content": {
-                  "role": "model",
-                  "parts": [{"text": "I've scoped the iOS SwiftUI accessibility audit:\n\n**Platform:** iOS (SwiftUI)\n\n**Scope:**\n- `**/*.swift` — Swift source files\n- `**/*.xib`, `**/*.storyboard` — Interface Builder files (if any)\n\n**WCAG 2.1 AA Criteria:**\n- 1.1.1 Non-text Content (accessibilityLabel on images/icons)\n- 1.3.1 Info and Relationships (accessibility traits: .header, .button)\n- 1.4.3 Contrast (Minimum) (color pairs against system background)\n- 2.1.1 Keyboard / Switch Control (focusable elements)\n- 2.4.3 Focus Order (accessibilitySortPriority)\n- 4.1.2 Name, Role, Value (accessibilityLabel, accessibilityHint, accessibilityValue)\n\n**Priority Areas:**\n- Onboarding flow screens: all interactive elements labeled\n- Image views: accessibilityLabel or isAccessibilityElement=false\n- Custom controls: accessibilityTraits correctly set\n- Dynamic Type: font scaling with .scaledToFit / scaledFont\n- Focus traps in modals and sheets\n\nReady to proceed. Shall I start the audit?"}]
-                }
-              },
-              {
-                "author": "user",
-                "content": {
-                  "role": "user",
-                  "parts": [{"text": "Approved. Run the audit."}]
-                }
-              }
-            ]
+        {
+          "invocationId": "inv-002",
+          "userContent": {
+            "role": "user",
+            "parts": [{"text": "Approved. Run the audit."}]
           }
-        ]
+        }
+      ],
+      "sessionInput": {
+        "app_name": "app",
+        "user_id": "eval_user",
+        "state": {}
       }
     }
   ]

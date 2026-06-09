@@ -27,6 +27,55 @@ from .config import config
 
 
 # ═══════════════════════════════════════════════════════════════
+# ADK Eval compat: Monkey-patch _get_app_details_by_invocation_id
+# to handle None system_instruction (ADK 2.1.0 bug).
+# Without this, eval inference crashes with:
+#   AgentDetails.instructions: Input should be a valid string
+# ═══════════════════════════════════════════════════════════════
+def _patch_adk_eval_agent_details() -> None:
+    try:
+        from google.adk.evaluation.app_details import AgentDetails
+        from google.adk.evaluation.evaluation_generator import EvaluationGenerator
+
+        _original = EvaluationGenerator._get_app_details_by_invocation_id
+
+        @staticmethod
+        def _patched_get_app_details(events, request_intercepter):  # type: ignore[no-untyped-def]
+            from google.adk.evaluation.evaluation_generator import (
+                EvaluationGenerator as _EG,
+                _USER_AUTHOR,
+            )
+            events_by_id = _EG._collect_events_by_invocation_id(events)
+            result = {}
+            for inv_id, inv_events in events_by_id.items():
+                from google.adk.evaluation.app_details import AppDetails
+                app_details = AppDetails(agent_details={})
+                result[inv_id] = app_details
+                for event in inv_events:
+                    if event.author == _USER_AUTHOR:
+                        continue
+                    llm_req = request_intercepter.get_model_request(event)
+                    if not llm_req:
+                        continue
+                    if event.author not in app_details.agent_details:
+                        app_details.agent_details[event.author] = AgentDetails(
+                            name=event.author,
+                            instructions=llm_req.config.system_instruction or "",
+                            tool_declarations=llm_req.config.tools or [],
+                        )
+            return result
+
+        EvaluationGenerator._get_app_details_by_invocation_id = (  # type: ignore[assignment]
+            _patched_get_app_details
+        )
+    except Exception:
+        pass  # Non-critical; only affects eval runs
+
+
+_patch_adk_eval_agent_details()
+
+
+# ═══════════════════════════════════════════════════════════════
 # Structured Output Models
 # ═══════════════════════════════════════════════════════════════
 
@@ -641,19 +690,41 @@ If no [TARGET_DIR: ...] prefix is present, use root_dir="." (current directory).
 
 **CRITICAL RULES:**
 1. Never audit code directly. Your job is to PLAN, then DELEGATE.
-2. Use `scope_analyzer` tool to create an audit plan for the user's request.
-3. Present the plan clearly: platform, scope (files), WCAG criteria, priority areas.
+2. MANDATORY FIRST ACTION — before writing ANY text to the user, you MUST call the `scope_analyzer`
+   tool with the full audit request including the extracted target directory path.
+   Do NOT generate a plan from your own knowledge. The `scope_analyzer` tool call is required
+   on every new audit request. If you have not called it yet, call it now.
+   Example request argument: "Audit the React TypeScript app at /path/to/project for WCAG 2.1 AA compliance."
+3. AFTER scope_analyzer returns, immediately emit a text response using this EXACT template
+   (fill each field from the scope_analyzer output — do not skip any field):
+
+   **Platform:** <detected platform: ios / android / web / cross-platform>
+   **Target Directory:** <the extracted [TARGET_DIR] path — REQUIRED, never omit>
+   **Scope:**
+   - <glob pattern 1>
+   - <glob pattern 2>
+   **WCAG 2.1 AA Criteria:**
+   - <criterion 1 with name, e.g. "1.1.1 Non-text Content">
+   - <criterion 2>
+   - <criterion 3>
+   (include at least 3 criteria)
+   **Priority Areas:**
+   - <platform-specific area 1>
+   - <platform-specific area 2>
+   (include at least 2 areas)
+
+   Shall I proceed with the full accessibility audit?
 4. Incorporate user feedback until the plan is approved.
-5. Once user gives EXPLICIT approval, delegate to `a11y_audit_pipeline`.
+5. Once user gives EXPLICIT approval ("yes", "proceed", "looks good", etc.), delegate to `a11y_audit_pipeline`.
 
 **WORKFLOW:**
-1. **Plan**: Use scope_analyzer → present audit plan
+1. **Plan**: Extract target_dir → CALL scope_analyzer (mandatory, include path in request) → present plan using template
 2. **Refine**: Incorporate feedback → update plan
 3. **Execute**: User approves → delegate to a11y_audit_pipeline
 4. **Report**: Pipeline returns → present findings to user
 
 Current date: {datetime.datetime.now().strftime("%Y-%m-%d")}
-Do not perform any scanning yourself. Plan → Refine → Delegate.
+Do not perform any scanning yourself. Plan → Present → Refine → Delegate.
 """,
     sub_agents=[a11y_audit_pipeline],
     tools=[AgentTool(scope_analyzer)],

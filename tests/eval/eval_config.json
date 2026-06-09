@@ -1,0 +1,14 @@
+{
+  "criteria": {
+    "tool_trajectory_avg_score": 1.0,
+    "final_response_match_v2": 0.6,
+    "audit_plan_quality": 0.6
+  },
+  "custom_metrics": {
+    "audit_plan_quality": {
+      "code_config": {
+        "name": "tests.eval.custom_metrics.audit_plan_quality"
+      }
+    }
+  }
+}
